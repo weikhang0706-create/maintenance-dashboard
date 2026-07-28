@@ -25,8 +25,8 @@ export function useIssues() {
         setLoading(false);
       })
       .catch((err) => {
-        setError(`Could not load from Google Sheets: ${err.message}. Showing offline data.`);
-        setIssues(MOCK_ISSUES);
+        setError(`Could not load from Google Sheets: ${err.message}.`);
+        setIssues([]);
         setLoading(false);
       });
   }, []);
