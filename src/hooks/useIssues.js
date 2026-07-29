@@ -45,7 +45,7 @@ export function useIssues() {
     };
 
     fetchIssues();
-    const pollInterval = setInterval(fetchIssues, 30000);
+    const pollInterval = setInterval(fetchIssues, 10000);
     return () => clearInterval(pollInterval);
   }, []);
 
