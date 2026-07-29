@@ -3,6 +3,7 @@ const SHEET_ID = import.meta.env.VITE_GOOGLE_SHEET_ID;
 const SCRIPT_URL = import.meta.env.VITE_APPS_SCRIPT_URL;
 const TAB_ISSUES = 'MAINT_Issues';
 const TAB_UNITS  = 'UNITS';
+const TAB_STAFF  = 'STAFF';
 
 export const canRead  = () => Boolean(API_KEY && SHEET_ID);
 export const canWrite = () => Boolean(SCRIPT_URL);
@@ -40,8 +41,12 @@ async function scriptCall(action, data) {
   return body;
 }
 
-export const sheetsCreate = (issue)   => scriptCall('create',     issue);
-export const sheetsUpdate = (issue)   => scriptCall('update',     issue);
-export const sheetsDelete = (issueID) => scriptCall('delete',     { IssueID: issueID });
-export const unitsCreate  = (unit)    => scriptCall('createUnit', unit);
-export const unitsUpdate  = (unit)    => scriptCall('updateUnit', unit);
+export const sheetsCreate = (issue)   => scriptCall('create',      issue);
+export const sheetsUpdate = (issue)   => scriptCall('update',      issue);
+export const sheetsDelete = (issueID) => scriptCall('delete',      { IssueID: issueID });
+export const unitsCreate  = (unit)    => scriptCall('createUnit',  unit);
+export const unitsUpdate  = (unit)    => scriptCall('updateUnit',  unit);
+export const staffRead    = ()        => readTab(TAB_STAFF, 'G');
+export const staffCreate  = (s)       => scriptCall('createStaff', s);
+export const staffUpdate  = (s)       => scriptCall('updateStaff', s);
+export const staffDelete  = (id)      => scriptCall('deleteStaff', { StaffID: id });

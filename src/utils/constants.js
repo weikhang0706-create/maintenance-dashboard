@@ -28,6 +28,9 @@ export const CONDO_LIST = [
   'Roof / External',
 ];
 
+export const STAFF_ROLES = ['Technician', 'Electrician', 'Plumber', 'HVAC Specialist', 'Cleaner', 'Supervisor', 'Other'];
+
+// Fallback used only when staff master list hasn't loaded yet
 export const STAFF_LIST = [
   'Ahmad Razif',
   'Siti Norehan',
