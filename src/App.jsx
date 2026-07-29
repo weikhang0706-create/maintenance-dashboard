@@ -7,12 +7,36 @@ import { ReportPage } from './pages/ReportPage';
 import { PropertyViewPage } from './pages/PropertyViewPage';
 import { BillingPage } from './pages/BillingPage';
 import { UnitsPage } from './pages/UnitsPage';
+import { StaffPage } from './pages/StaffPage';
 import { useIssues } from './hooks/useIssues';
 import { useUnits } from './hooks/useUnits';
+import { useStaff } from './hooks/useStaff';
 
 export default function App() {
   const { issues, loading, error, syncStatus, addIssue, updateIssue, deleteIssue } = useIssues();
   const { units, addUnit, updateUnit } = useUnits();
+
+  // When a unit is edited, cascade the location changes to all issues logged for that unit
+  const handleUpdateUnit = (unitID, changes) => {
+    updateUnit(unitID, changes);
+    const updatedUnit = { ...units.find((u) => u.UnitID === unitID), ...changes };
+    issues
+      .filter((i) => i.UnitID === unitID)
+      .forEach((issue) => {
+        const condo      = updatedUnit.Condo      ?? issue.Condo;
+        const unitNumber = updatedUnit.UnitNumber  ?? issue.UnitNumber;
+        const type       = updatedUnit.PropertyType ?? issue.PropertyType;
+        const parts      = [condo, unitNumber ? `Unit ${unitNumber}` : ''].filter(Boolean);
+        if (issue.RoomNumber?.trim()) parts.push(issue.RoomNumber);
+        updateIssue(issue.IssueID, {
+          Condo:        condo,
+          UnitNumber:   unitNumber,
+          PropertyType: type,
+          Location:     parts.join(' - '),
+        });
+      });
+  };
+  const { staff, addStaff, updateStaff, deleteStaff, activeStaffNames } = useStaff();
 
   return (
     <BrowserRouter>
@@ -41,10 +65,11 @@ export default function App() {
             <Routes>
               <Route path="/"              element={<DashboardPage    issues={issues} onUpdate={updateIssue} />} />
               <Route path="/property-view" element={<PropertyViewPage issues={issues} onUpdate={updateIssue} />} />
-              <Route path="/issues"        element={<IssuesPage       issues={issues} onUpdate={updateIssue} onDelete={deleteIssue} />} />
+              <Route path="/issues"        element={<IssuesPage       issues={issues} onUpdate={updateIssue} onDelete={deleteIssue} staffNames={activeStaffNames} />} />
               <Route path="/billing"       element={<BillingPage      issues={issues} onUpdate={updateIssue} />} />
-              <Route path="/units"         element={<UnitsPage        units={units}   onAddUnit={addUnit} onUpdateUnit={updateUnit} />} />
-              <Route path="/report"        element={<ReportPage       onAddIssue={addIssue} units={units} />} />
+              <Route path="/units"         element={<UnitsPage        units={units}   onAddUnit={addUnit} onUpdateUnit={handleUpdateUnit} />} />
+              <Route path="/staff"         element={<StaffPage        staff={staff}   onAddStaff={addStaff} onUpdateStaff={updateStaff} onDeleteStaff={deleteStaff} />} />
+              <Route path="/report"        element={<ReportPage       onAddIssue={addIssue} units={units} staffNames={activeStaffNames} />} />
             </Routes>
           )}
         </main>
