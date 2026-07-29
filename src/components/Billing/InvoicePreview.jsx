@@ -9,6 +9,7 @@ export function InvoicePreview({ isOpen, onClose, invoiceNumber, invoiceDate, is
   const [companyName, setCompanyName] = useState(() => localStorage.getItem('inv_company') || '');
   const [companyAddress, setCompanyAddress] = useState(() => localStorage.getItem('inv_address') || '');
   const [companyPhone, setCompanyPhone] = useState(() => localStorage.getItem('inv_phone') || '');
+  const [companyEmail, setCompanyEmail] = useState(() => localStorage.getItem('inv_email') || '');
   const [notes, setNotes] = useState('');
   const [confirmed, setConfirmed] = useState(false);
 
@@ -29,6 +30,7 @@ export function InvoicePreview({ isOpen, onClose, invoiceNumber, invoiceDate, is
     localStorage.setItem('inv_company', companyName);
     localStorage.setItem('inv_address', companyAddress);
     localStorage.setItem('inv_phone', companyPhone);
+    localStorage.setItem('inv_email', companyEmail);
   };
 
   const handlePrint = () => {
@@ -82,6 +84,7 @@ export function InvoicePreview({ isOpen, onClose, invoiceNumber, invoiceDate, is
             <div class="company">${companyName || '[Your Company Name]'}</div>
             ${companyAddress ? `<div class="company-sub">${companyAddress}</div>` : ''}
             ${companyPhone ? `<div class="company-sub">Tel: ${companyPhone}</div>` : ''}
+            ${companyEmail ? `<div class="company-sub">Email: ${companyEmail}</div>` : ''}
           </div>
           <div class="invoice-meta">
             <div class="invoice-title">INVOICE</div>
@@ -96,6 +99,7 @@ export function InvoicePreview({ isOpen, onClose, invoiceNumber, invoiceDate, is
             <div class="party-name">${companyName || '[Your Company Name]'}</div>
             ${companyAddress ? `<div style="font-size:12px;color:#555;margin-top:3px">${companyAddress}</div>` : ''}
             ${companyPhone ? `<div style="font-size:12px;color:#555">Tel: ${companyPhone}</div>` : ''}
+            ${companyEmail ? `<div style="font-size:12px;color:#555">Email: ${companyEmail}</div>` : ''}
           </div>
           <div>
             <div class="party-label">Bill To</div>
@@ -174,6 +178,16 @@ export function InvoicePreview({ isOpen, onClose, invoiceNumber, invoiceDate, is
                 value={companyPhone}
                 onChange={(e) => setCompanyPhone(e.target.value)}
                 placeholder="e.g. 03-1234 5678"
+                className={inputCls}
+              />
+            </div>
+            <div>
+              <label className={labelCls}>Email</label>
+              <input
+                type="email"
+                value={companyEmail}
+                onChange={(e) => setCompanyEmail(e.target.value)}
+                placeholder="e.g. info@yourcompany.com"
                 className={inputCls}
               />
             </div>
