@@ -7,7 +7,7 @@ import { PROPERTY_TYPES, PROPERTY_TYPE_COLORS, INVOICE_STATUSES, INVOICE_STATUS_
 import { displayDate, todayISO } from '../utils/dateUtils';
 import { generateInvoiceNumber } from '../utils/issueUtils';
 
-export function BillingPage({ issues, onUpdate }) {
+export function BillingPage({ issues, onUpdate, units = [] }) {
   const [filterType, setFilterType] = useState('');
   const [filterStatus, setFilterStatus] = useState('Unbilled');
   const [completedFrom, setCompletedFrom] = useState('');
@@ -365,6 +365,7 @@ export function BillingPage({ issues, onUpdate }) {
         invoiceDate={todayISO()}
         issues={selectedIssues}
         onConfirm={handleConfirmInvoice}
+        units={units}
       />
     </div>
   );

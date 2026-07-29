@@ -1,15 +1,27 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Modal } from '../UI/Modal';
 import { Button } from '../UI/Button';
 import { displayDate } from '../../utils/dateUtils';
 
-export function InvoicePreview({ isOpen, onClose, invoiceNumber, invoiceDate, issues, onConfirm }) {
+export function InvoicePreview({ isOpen, onClose, invoiceNumber, invoiceDate, issues, onConfirm, units = [] }) {
   const [billedTo, setBilledTo] = useState('');
+  const [billedAddress, setBilledAddress] = useState('');
   const [companyName, setCompanyName] = useState(() => localStorage.getItem('inv_company') || '');
   const [companyAddress, setCompanyAddress] = useState(() => localStorage.getItem('inv_address') || '');
   const [companyPhone, setCompanyPhone] = useState(() => localStorage.getItem('inv_phone') || '');
   const [notes, setNotes] = useState('');
   const [confirmed, setConfirmed] = useState(false);
+
+  // Auto-fill owner info when issues share a single unit that has owner details
+  useEffect(() => {
+    if (!isOpen || !units.length || !issues.length) return;
+    const unitIDs = [...new Set(issues.map((i) => i.UnitID).filter(Boolean))];
+    if (unitIDs.length !== 1) return;
+    const unit = units.find((u) => u.UnitID === unitIDs[0]);
+    if (!unit) return;
+    if (unit.OwnerName)    setBilledTo(unit.OwnerName);
+    if (unit.OwnerAddress) setBilledAddress(unit.OwnerAddress);
+  }, [isOpen, issues, units]);
 
   const total = issues.reduce((s, i) => s + (parseFloat(i.BillAmount) || 0), 0);
 
@@ -88,6 +100,7 @@ export function InvoicePreview({ isOpen, onClose, invoiceNumber, invoiceDate, is
           <div>
             <div class="party-label">Bill To</div>
             <div class="party-name">${billedTo || '[Client Name / Unit]'}</div>
+            ${billedAddress ? `<div style="font-size:12px;color:#555;margin-top:3px;white-space:pre-line">${billedAddress}</div>` : ''}
           </div>
         </div>
 
@@ -132,6 +145,7 @@ export function InvoicePreview({ isOpen, onClose, invoiceNumber, invoiceDate, is
     onConfirm({ billedTo, invoiceNumber, invoiceDate });
     setConfirmed(false);
     setBilledTo('');
+    setBilledAddress('');
     setNotes('');
     onClose();
   };
@@ -178,20 +192,30 @@ export function InvoicePreview({ isOpen, onClose, invoiceNumber, invoiceDate, is
 
         {/* Invoice meta */}
         <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className={labelCls}>Bill To *</label>
-            <input
-              type="text"
-              value={billedTo}
-              onChange={(e) => setBilledTo(e.target.value)}
-              placeholder="Client name or unit"
-              className={inputCls}
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-3 col-span-1">
+          <div className="col-span-2 grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelCls}>Bill To (Owner Name) *</label>
+              <input
+                type="text"
+                value={billedTo}
+                onChange={(e) => setBilledTo(e.target.value)}
+                placeholder="Auto-filled from unit owner, or type manually"
+                className={inputCls}
+              />
+            </div>
             <div>
               <label className={labelCls}>Invoice Number</label>
               <input type="text" value={invoiceNumber} readOnly className={`${inputCls} bg-gray-50 text-gray-500`} />
+            </div>
+            <div className="col-span-2">
+              <label className={labelCls}>Billing Address</label>
+              <textarea
+                value={billedAddress}
+                onChange={(e) => setBilledAddress(e.target.value)}
+                placeholder="Auto-filled from unit owner address, or type manually"
+                rows={2}
+                className={`${inputCls} resize-none`}
+              />
             </div>
             <div>
               <label className={labelCls}>Invoice Date</label>

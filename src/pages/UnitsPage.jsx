@@ -90,14 +90,14 @@ export function UnitsPage({ units, onAddUnit, onUpdateUnit }) {
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
-              {['Unit ID','Type','Block','Unit No.','Floor','Has Rooms','Rooms','Status','Notes',''].map((h) => (
+              {['Unit ID','Type','Block','Unit No.','Floor','Has Rooms','Rooms','Owner','Status','Notes',''].map((h) => (
                 <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 bg-white">
             {filtered.length === 0 ? (
-              <tr><td colSpan={10} className="text-center py-12 text-gray-400">
+              <tr><td colSpan={11} className="text-center py-12 text-gray-400">
                 <p className="text-3xl mb-2">🏠</p>
                 <p>No units found. Add your first unit above.</p>
               </td></tr>
@@ -125,6 +125,14 @@ export function UnitsPage({ units, onAddUnit, onUpdateUnit }) {
                         {rooms.map((r) => (
                           <span key={r} className="text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">{r}</span>
                         ))}
+                      </div>
+                    ) : <span className="text-gray-300 text-xs">—</span>}
+                  </td>
+                  <td className="px-4 py-3">
+                    {unit.OwnerName ? (
+                      <div>
+                        <p className="text-sm text-gray-800 font-medium">{unit.OwnerName}</p>
+                        {unit.OwnerPhone && <p className="text-xs text-gray-400">{unit.OwnerPhone}</p>}
                       </div>
                     ) : <span className="text-gray-300 text-xs">—</span>}
                   </td>
