@@ -1,3 +1,4 @@
+import { useState, useMemo } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Sidebar } from './components/Layout/Sidebar';
 import { SyncStatus } from './components/UI/SyncStatus';
@@ -8,15 +9,21 @@ import { PropertyViewPage } from './pages/PropertyViewPage';
 import { BillingPage } from './pages/BillingPage';
 import { UnitsPage } from './pages/UnitsPage';
 import { StaffPage } from './pages/StaffPage';
+import { LoginPage } from './pages/LoginPage';
 import { useIssues } from './hooks/useIssues';
 import { useUnits } from './hooks/useUnits';
 import { useStaff } from './hooks/useStaff';
+import { isOverdue } from './utils/dateUtils';
 
 export default function App() {
+  const [authed, setAuthed] = useState(() => sessionStorage.getItem('maint_auth') === '1');
+
   const { issues, loading, error, syncStatus, addIssue, updateIssue, deleteIssue } = useIssues();
   const { units, addUnit, updateUnit } = useUnits();
+  const { staff, addStaff, updateStaff, deleteStaff, activeStaffNames } = useStaff();
 
-  // When a unit is edited, cascade the location changes to all issues logged for that unit
+  const overdueCount = useMemo(() => issues.filter(isOverdue).length, [issues]);
+
   const handleUpdateUnit = (unitID, changes) => {
     updateUnit(unitID, changes);
     const updatedUnit = { ...units.find((u) => u.UnitID === unitID), ...changes };
@@ -29,19 +36,25 @@ export default function App() {
         const parts      = [condo, unitNumber ? `Unit ${unitNumber}` : ''].filter(Boolean);
         if (issue.RoomNumber?.trim()) parts.push(issue.RoomNumber);
         updateIssue(issue.IssueID, {
-          Condo:        condo,
-          UnitNumber:   unitNumber,
-          PropertyType: type,
-          Location:     parts.join(' - '),
+          Condo: condo, UnitNumber: unitNumber, PropertyType: type,
+          Location: parts.join(' - '),
         });
       });
   };
-  const { staff, addStaff, updateStaff, deleteStaff, activeStaffNames } = useStaff();
+
+  const handleLogout = () => {
+    sessionStorage.removeItem('maint_auth');
+    setAuthed(false);
+  };
+
+  if (!authed) {
+    return <LoginPage onLogin={() => setAuthed(true)} />;
+  }
 
   return (
     <BrowserRouter>
       <div className="flex min-h-screen bg-gray-100">
-        <Sidebar />
+        <Sidebar overdueCount={overdueCount} onLogout={handleLogout} />
         <main className="flex-1 p-8 overflow-y-auto">
 
           {error && (
@@ -63,8 +76,8 @@ export default function App() {
             </div>
           ) : (
             <Routes>
-              <Route path="/"              element={<DashboardPage    issues={issues} onUpdate={updateIssue} />} />
-              <Route path="/property-view" element={<PropertyViewPage issues={issues} onUpdate={updateIssue} />} />
+              <Route path="/"              element={<DashboardPage    issues={issues} onUpdate={updateIssue} onDelete={deleteIssue} staffNames={activeStaffNames} />} />
+              <Route path="/property-view" element={<PropertyViewPage issues={issues} onUpdate={updateIssue} onDelete={deleteIssue} staffNames={activeStaffNames} />} />
               <Route path="/issues"        element={<IssuesPage       issues={issues} onUpdate={updateIssue} onDelete={deleteIssue} staffNames={activeStaffNames} />} />
               <Route path="/billing"       element={<BillingPage      issues={issues} onUpdate={updateIssue} units={units} />} />
               <Route path="/units"         element={<UnitsPage        units={units}   onAddUnit={addUnit} onUpdateUnit={handleUpdateUnit} />} />

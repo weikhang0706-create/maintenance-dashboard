@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { downloadCSV } from '../utils/exportUtils';
 import { Header } from '../components/Layout/Header';
 import { Badge } from '../components/UI/Badge';
 import { Button } from '../components/UI/Button';
@@ -6,6 +7,22 @@ import { InvoicePreview } from '../components/Billing/InvoicePreview';
 import { PROPERTY_TYPES, PROPERTY_TYPE_COLORS, INVOICE_STATUSES, INVOICE_STATUS_COLORS } from '../utils/constants';
 import { displayDate, todayISO } from '../utils/dateUtils';
 import { generateInvoiceNumber } from '../utils/issueUtils';
+
+const BILLING_CSV_COLS = [
+  { label: 'Issue ID',        key: 'IssueID' },
+  { label: 'Condo',           key: 'Condo' },
+  { label: 'Unit No.',        key: 'UnitNumber' },
+  { label: 'Room',            key: 'RoomNumber' },
+  { label: 'Category',        key: 'Category' },
+  { label: 'Description',     key: 'Description' },
+  { label: 'Date Completed',  key: 'DateCompleted' },
+  { label: 'Repair Cost (RM)',key: 'Cost' },
+  { label: 'Bill Amount (RM)',key: 'BillAmount' },
+  { label: 'Invoice Status',  key: 'InvoiceStatus' },
+  { label: 'Invoice No.',     key: 'InvoiceNumber' },
+  { label: 'Invoice Date',    key: 'InvoiceDate' },
+  { label: 'Billed To',       key: 'BilledTo' },
+];
 
 export function BillingPage({ issues, onUpdate, units = [] }) {
   const [filterType, setFilterType] = useState('');
@@ -208,6 +225,9 @@ export function BillingPage({ issues, onUpdate, units = [] }) {
               Save Amounts
             </Button>
           )}
+          <Button variant="secondary" onClick={() => downloadCSV(`billing-${new Date().toISOString().slice(0,10)}.csv`, filtered, BILLING_CSV_COLS)}>
+            ↓ Export CSV
+          </Button>
           <Button
             onClick={() => setShowInvoice(true)}
             disabled={!canGenerateInvoice}

@@ -6,6 +6,24 @@ import { IssueTable } from '../components/Issues/IssueTable';
 import { IssueDetailModal } from '../components/Issues/IssueDetailModal';
 import { Button } from '../components/UI/Button';
 import { isOverdue } from '../utils/dateUtils';
+import { downloadCSV } from '../utils/exportUtils';
+
+const ISSUE_CSV_COLS = [
+  { label: 'Issue ID',       key: 'IssueID' },
+  { label: 'Date Reported',  key: 'DateReported' },
+  { label: 'Condo',          key: 'Condo' },
+  { label: 'Unit No.',       key: 'UnitNumber' },
+  { label: 'Room',           key: 'RoomNumber' },
+  { label: 'Category',       key: 'Category' },
+  { label: 'Description',    key: 'Description' },
+  { label: 'Priority',       key: 'Priority' },
+  { label: 'Status',         key: 'Status' },
+  { label: 'Assigned To',    key: 'AssignedTo' },
+  { label: 'Due Date',       key: 'DueDate' },
+  { label: 'Date Completed', key: 'DateCompleted' },
+  { label: 'Cost (RM)',      key: 'Cost' },
+  { label: 'Notes',          key: 'Notes' },
+];
 
 export function IssuesPage({ issues, onUpdate, onDelete, staffNames }) {
   const [searchParams] = useSearchParams();
@@ -54,7 +72,12 @@ export function IssuesPage({ issues, onUpdate, onDelete, staffNames }) {
           title="All Issues"
           subtitle={`${filtered.length} of ${issues.length} issues`}
         />
-        <Button onClick={() => navigate('/report')}>+ Report Issue</Button>
+        <div className="flex gap-2">
+          <Button variant="secondary" onClick={() => downloadCSV(`issues-${new Date().toISOString().slice(0,10)}.csv`, filtered, ISSUE_CSV_COLS)}>
+            ↓ Export CSV
+          </Button>
+          <Button onClick={() => navigate('/report')}>+ Report Issue</Button>
+        </div>
       </div>
 
       <IssueFilters filters={filters} onChange={setFilters} />
