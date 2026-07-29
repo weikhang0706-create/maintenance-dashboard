@@ -65,10 +65,11 @@ function ExpandableCell({ value, onRowClick }) {
   );
 }
 
-export function IssueTable({ issues, onSelectIssue, onUpdate }) {
+export function IssueTable({ issues, onSelectIssue, onUpdate, onDelete }) {
   const [sortKey, setSortKey] = useState('DateReported');
   const [sortDir, setSortDir] = useState('desc');
   const [quickDoneIssue, setQuickDoneIssue] = useState(null);
+  const [deleteConfirmID, setDeleteConfirmID] = useState(null);
 
   const handleSort = (key) => {
     if (sortKey === key) {
@@ -171,18 +172,45 @@ export function IssueTable({ issues, onSelectIssue, onUpdate }) {
                     </span>
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
-                    {active ? (
-                      <button
-                        onClick={(e) => { e.stopPropagation(); setQuickDoneIssue(issue); }}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 hover:border-green-400 transition-colors"
-                      >
-                        ✓ Mark Done
-                      </button>
-                    ) : (
-                      <span className="text-xs text-gray-300 italic">
-                        {issue.Status === 'Done' ? `Done ${displayDate(issue.DateCompleted)}` : 'Cancelled'}
-                      </span>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {active ? (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setQuickDoneIssue(issue); }}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 hover:border-green-400 transition-colors"
+                        >
+                          ✓ Mark Done
+                        </button>
+                      ) : (
+                        <span className="text-xs text-gray-300 italic">
+                          {issue.Status === 'Done' ? `Done ${displayDate(issue.DateCompleted)}` : 'Cancelled'}
+                        </span>
+                      )}
+
+                      {deleteConfirmID === issue.IssueID ? (
+                        <span className="flex items-center gap-1">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); onDelete(issue.IssueID); setDeleteConfirmID(null); }}
+                            className="px-2 py-1 rounded text-xs font-semibold bg-red-500 text-white hover:bg-red-600"
+                          >
+                            Confirm
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setDeleteConfirmID(null); }}
+                            className="px-2 py-1 rounded text-xs text-gray-500 hover:text-gray-700"
+                          >
+                            Cancel
+                          </button>
+                        </span>
+                      ) : (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setDeleteConfirmID(issue.IssueID); }}
+                          className="px-2 py-1 rounded text-xs font-semibold bg-red-50 text-red-500 border border-red-200 hover:bg-red-100 transition-colors"
+                          title="Delete issue"
+                        >
+                          🗑 Delete
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               );

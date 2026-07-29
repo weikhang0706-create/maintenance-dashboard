@@ -54,7 +54,7 @@ export function IssuesPage({ issues, onUpdate, onDelete }) {
       </div>
 
       <IssueFilters filters={filters} onChange={setFilters} />
-      <IssueTable issues={filtered} onSelectIssue={setSelected} onUpdate={onUpdate} />
+      <IssueTable issues={filtered} onSelectIssue={setSelected} onUpdate={onUpdate} onDelete={onDelete} />
 
       <IssueDetailModal
         issue={selected}
