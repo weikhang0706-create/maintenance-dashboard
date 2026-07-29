@@ -274,12 +274,10 @@ export function IssueDetailModal({ issue, onClose, onUpdate, onDelete, staffName
                   Delete Issue
                 </button>
               )}
-              <div className="flex items-center gap-2">
-                {(() => {
-                  if (!issue.AssignedTo) return null;
+              <div className="flex items-center gap-2 flex-wrap">
+                {issue.AssignedTo && (() => {
                   const assignedStaff = staff.find((s) => s.Name === issue.AssignedTo);
                   const waNum = formatWANumber(assignedStaff?.Phone);
-                  if (!waNum) return null;
                   const msg = encodeURIComponent(
                     `Hi ${issue.AssignedTo}, you have been assigned a maintenance issue.\n\n` +
                     `📋 Issue: ${issue.IssueID}\n` +
@@ -290,15 +288,22 @@ export function IssueDetailModal({ issue, onClose, onUpdate, onDelete, staffName
                     (issue.DueDate ? `📅 Due Date: ${issue.DueDate}\n` : '') +
                     `\nPlease attend to this issue promptly. Thank you.`
                   );
+                  if (waNum) {
+                    return (
+                      <a
+                        href={`https://wa.me/${waNum}?text=${msg}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1.5 text-xs font-semibold bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded-lg transition-colors"
+                      >
+                        💬 WhatsApp {issue.AssignedTo.split(' ')[0]}
+                      </a>
+                    );
+                  }
                   return (
-                    <a
-                      href={`https://wa.me/${waNum}?text=${msg}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1.5 text-xs font-semibold bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded-lg transition-colors"
-                    >
-                      <span>💬</span> WhatsApp {issue.AssignedTo.split(' ')[0]}
-                    </a>
+                    <span className="text-xs text-gray-400 italic">
+                      💬 Add phone to staff profile to enable WhatsApp
+                    </span>
                   );
                 })()}
                 <Button onClick={() => setEditing(true)}>Edit Issue</Button>
