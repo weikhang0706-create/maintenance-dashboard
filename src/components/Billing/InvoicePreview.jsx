@@ -51,6 +51,7 @@ export function InvoicePreview({ isOpen, onClose, invoiceNumber, invoiceDate, is
           .notes { margin-top: 16px; padding: 14px; border: 1px solid #e5e7eb; border-radius: 6px; }
           .notes-label { font-size: 11px; font-weight: bold; text-transform: uppercase; color: #888; margin-bottom: 6px; }
           .footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid #e5e7eb; text-align: center; font-size: 11px; color: #999; }
+          @page { margin: 0; }
           @media print { body { padding: 20px; } }
         </style>
       </head>
