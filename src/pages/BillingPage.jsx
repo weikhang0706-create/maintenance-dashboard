@@ -10,6 +10,8 @@ import { generateInvoiceNumber } from '../utils/issueUtils';
 export function BillingPage({ issues, onUpdate }) {
   const [filterType, setFilterType] = useState('');
   const [filterStatus, setFilterStatus] = useState('Unbilled');
+  const [completedFrom, setCompletedFrom] = useState('');
+  const [completedTo, setCompletedTo] = useState('');
   const [selected, setSelected] = useState(new Set());
   const [billAmounts, setBillAmounts] = useState({});
   const [showInvoice, setShowInvoice] = useState(false);
@@ -24,9 +26,11 @@ export function BillingPage({ issues, onUpdate }) {
     return billable.filter((i) => {
       if (filterType && i.PropertyType !== filterType) return false;
       if (filterStatus && i.InvoiceStatus !== filterStatus) return false;
+      if (completedFrom && i.DateCompleted < completedFrom) return false;
+      if (completedTo   && i.DateCompleted > completedTo)   return false;
       return true;
     });
-  }, [billable, filterType, filterStatus]);
+  }, [billable, filterType, filterStatus, completedFrom, completedTo]);
 
   // Summary totals across all Done issues
   const summary = useMemo(() => {
@@ -172,6 +176,29 @@ export function BillingPage({ issues, onUpdate }) {
           <option value="">All Statuses</option>
           {INVOICE_STATUSES.map((s) => <option key={s}>{s}</option>)}
         </select>
+
+        <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-1.5">
+          <span className="text-xs font-semibold text-green-700 whitespace-nowrap">Completed:</span>
+          <input
+            type="date"
+            value={completedFrom}
+            onChange={(e) => setCompletedFrom(e.target.value)}
+            className="text-sm border border-green-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-green-400 bg-white"
+          />
+          <span className="text-xs text-green-600">to</span>
+          <input
+            type="date"
+            value={completedTo}
+            onChange={(e) => setCompletedTo(e.target.value)}
+            className="text-sm border border-green-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-green-400 bg-white"
+          />
+          {(completedFrom || completedTo) && (
+            <button
+              onClick={() => { setCompletedFrom(''); setCompletedTo(''); }}
+              className="text-xs text-green-600 hover:text-green-800 font-semibold"
+            >✕</button>
+          )}
+        </div>
 
         <span className="text-sm text-gray-400 ml-1">{filtered.length} issues</span>
 
