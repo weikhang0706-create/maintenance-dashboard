@@ -2,8 +2,11 @@ import { useState, useEffect } from 'react';
 import { Modal } from '../UI/Modal';
 import { Button } from '../UI/Button';
 import { Badge } from '../UI/Badge';
-import { STATUS_COLORS, PRIORITY_COLORS, PROPERTY_TYPE_COLORS, STATUSES, STAFF_LIST } from '../../utils/constants';
-import { displayDate, suggestDueDate, todayISO } from '../../utils/dateUtils';
+import {
+  STATUS_COLORS, PRIORITY_COLORS, PROPERTY_TYPE_COLORS,
+  STATUSES, STAFF_LIST, CATEGORIES, PRIORITIES, PROPERTY_TYPES,
+} from '../../utils/constants';
+import { displayDate, todayISO } from '../../utils/dateUtils';
 
 export function IssueDetailModal({ issue, onClose, onUpdate }) {
   const [editing, setEditing] = useState(false);
@@ -12,12 +15,21 @@ export function IssueDetailModal({ issue, onClose, onUpdate }) {
   useEffect(() => {
     if (issue) {
       setForm({
-        Status: issue.Status,
-        AssignedTo: issue.AssignedTo,
-        DueDate: issue.DueDate,
-        DateCompleted: issue.DateCompleted,
-        Cost: issue.Cost,
-        Notes: issue.Notes,
+        PropertyType:  issue.PropertyType  || '',
+        Condo:         issue.Condo         || '',
+        UnitNumber:    issue.UnitNumber     || '',
+        RoomNumber:    issue.RoomNumber     || '',
+        ReportedBy:    issue.ReportedBy     || '',
+        Category:      issue.Category      || '',
+        OtherCategory: issue.OtherCategory  || '',
+        Description:   issue.Description   || '',
+        Priority:      issue.Priority      || '',
+        Status:        issue.Status        || '',
+        AssignedTo:    issue.AssignedTo    || '',
+        DueDate:       issue.DueDate       || '',
+        DateCompleted: issue.DateCompleted  || '',
+        Cost:          issue.Cost          || '',
+        Notes:         issue.Notes         || '',
       });
       setEditing(false);
     }
@@ -32,20 +44,23 @@ export function IssueDetailModal({ issue, onClose, onUpdate }) {
       if (key === 'AssignedTo' && val && next.Status === 'Open') {
         next.Status = 'Assigned';
       }
-      // Auto-fill today as completion date when marking Done (user can still change it)
       if (key === 'Status' && val === 'Done' && !prev.DateCompleted) {
         next.DateCompleted = todayISO();
       }
-      // Clear completion date if moving away from Done
       if (key === 'Status' && val !== 'Done') {
         next.DateCompleted = '';
+      }
+      if (key === 'Category' && val !== 'Other') {
+        next.OtherCategory = '';
       }
       return next;
     });
   };
 
   const handleSave = () => {
-    onUpdate(issue.IssueID, form);
+    const locationParts = [form.Condo, form.UnitNumber ? `Unit ${form.UnitNumber}` : ''].filter(Boolean);
+    if (form.RoomNumber?.trim()) locationParts.push(form.RoomNumber);
+    onUpdate(issue.IssueID, { ...form, Location: locationParts.join(' - ') || issue.Location });
     setEditing(false);
   };
 
@@ -54,58 +69,87 @@ export function IssueDetailModal({ issue, onClose, onUpdate }) {
   return (
     <Modal isOpen={!!issue} onClose={onClose} title={`${issue.IssueID} — ${issue.Location}`}>
       <div className="space-y-5">
-        {/* Read-only header info */}
-        <div className="grid grid-cols-2 gap-3 text-sm">
-          <Info label="Property Type">
-            {issue.PropertyType ? (
-              <Badge className={PROPERTY_TYPE_COLORS[issue.PropertyType] ?? 'bg-gray-100 text-gray-600'}>
-                {issue.PropertyType}
-              </Badge>
-            ) : <span className="text-gray-400">—</span>}
-          </Info>
-          <Info label="Reported By" value={issue.ReportedBy || '—'} />
-          <Info label="Date Reported" value={displayDate(issue.DateReported)} />
-          <Info
-            label="Category"
-            value={issue.Category === 'Other' && issue.OtherCategory
-              ? `Other — ${issue.OtherCategory}`
-              : issue.Category}
-          />
-          <Info label="Priority">
-            <Badge className={PRIORITY_COLORS[issue.Priority]}>{issue.Priority}</Badge>
-          </Info>
-        </div>
 
-        <div className="text-sm">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Description</p>
-          <p className="text-gray-800 bg-gray-50 rounded-lg p-3">{issue.Description}</p>
+        {/* Read-only header */}
+        <div className="grid grid-cols-2 gap-3 text-sm">
+          <Info label="Date Reported" value={displayDate(issue.DateReported)} />
+          <Info label="Issue ID" value={issue.IssueID} />
         </div>
 
         <hr className="border-gray-100" />
 
         {editing ? (
           <div className="space-y-4">
+
+            {/* Location */}
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Location</p>
+            <div className="grid grid-cols-3 gap-3">
+              <Field label="Condo / Block">
+                <input type="text" value={form.Condo} onChange={field('Condo')} className={inputCls} placeholder="e.g. Block A" />
+              </Field>
+              <Field label="Unit Number">
+                <input type="text" value={form.UnitNumber} onChange={field('UnitNumber')} className={inputCls} placeholder="e.g. 3A" />
+              </Field>
+              <Field label="Room Number">
+                <input type="text" value={form.RoomNumber} onChange={field('RoomNumber')} className={inputCls} placeholder="Optional" />
+              </Field>
+            </div>
+
+            {/* Issue details */}
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide pt-1">Issue Details</p>
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="Property Type">
+                <select value={form.PropertyType} onChange={field('PropertyType')} className={selectCls}>
+                  <option value="">—</option>
+                  {PROPERTY_TYPES.map((t) => <option key={t}>{t}</option>)}
+                </select>
+              </Field>
+              <Field label="Reported By">
+                <input type="text" value={form.ReportedBy} onChange={field('ReportedBy')} className={inputCls} />
+              </Field>
+              <Field label="Category">
+                <select value={form.Category} onChange={field('Category')} className={selectCls}>
+                  <option value="">—</option>
+                  {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
+                </select>
+              </Field>
+              {form.Category === 'Other' && (
+                <Field label="Specify Category">
+                  <input type="text" value={form.OtherCategory} onChange={field('OtherCategory')} className={inputCls} placeholder="e.g. Pest control" />
+                </Field>
+              )}
+              <Field label="Priority">
+                <select value={form.Priority} onChange={field('Priority')} className={selectCls}>
+                  <option value="">—</option>
+                  {PRIORITIES.map((p) => <option key={p}>{p}</option>)}
+                </select>
+              </Field>
+            </div>
+
+            <Field label="Description">
+              <textarea value={form.Description} onChange={field('Description')} rows={3} className={`${inputCls} resize-none`} />
+            </Field>
+
+            {/* Status & assignment */}
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide pt-1">Status &amp; Assignment</p>
             <div className="grid grid-cols-2 gap-4">
               <Field label="Status">
                 <select value={form.Status} onChange={field('Status')} className={selectCls}>
                   {STATUSES.map((s) => <option key={s}>{s}</option>)}
                 </select>
               </Field>
-
               <Field label="Assigned To">
                 <select value={form.AssignedTo} onChange={field('AssignedTo')} className={selectCls}>
                   <option value="">— Unassigned —</option>
                   {STAFF_LIST.map((s) => <option key={s}>{s}</option>)}
                 </select>
               </Field>
-
               <Field label="Due Date">
                 <input type="date" value={form.DueDate} onChange={field('DueDate')} className={inputCls} />
               </Field>
-
               <Field
                 label="Date Completed"
-                sub={isDone ? 'Select the actual completion date' : 'Only applies when status is Done'}
+                sub={isDone ? undefined : 'Only applies when status is Done'}
               >
                 <input
                   type="date"
@@ -116,46 +160,84 @@ export function IssueDetailModal({ issue, onClose, onUpdate }) {
                   className={`${inputCls} ${!isDone ? 'opacity-40 cursor-not-allowed' : ''}`}
                 />
               </Field>
-
               <Field label="Cost (RM)">
                 <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={form.Cost}
-                  onChange={field('Cost')}
-                  className={inputCls}
-                  placeholder="0.00"
+                  type="number" min="0" step="0.01"
+                  value={form.Cost} onChange={field('Cost')}
+                  className={inputCls} placeholder="0.00"
                 />
               </Field>
             </div>
 
             <Field label="Notes">
-              <textarea value={form.Notes} onChange={field('Notes')} className={`${inputCls} h-20 resize-none`} />
+              <textarea value={form.Notes} onChange={field('Notes')} rows={2} className={`${inputCls} resize-none`} />
             </Field>
 
-            <div className="flex gap-2 justify-end">
+            <div className="flex gap-2 justify-end pt-1">
               <Button variant="secondary" onClick={() => setEditing(false)}>Cancel</Button>
               <Button onClick={handleSave}>Save Changes</Button>
             </div>
           </div>
+
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-4">
+
+            {/* Location */}
+            <div>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Location</p>
+              <div className="grid grid-cols-3 gap-3 text-sm">
+                <Info label="Condo / Block"  value={issue.Condo      || issue.Location?.split(' - ')[0] || '—'} />
+                <Info label="Unit Number"    value={issue.UnitNumber  || issue.Location?.split(' - ')[1]?.replace(/^Unit\s+/i, '') || '—'} />
+                <Info label="Room Number"    value={issue.RoomNumber  || issue.Location?.split(' - ')[2] || '—'} />
+              </div>
+            </div>
+
+            {/* Issue details */}
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <Info label="Property Type">
+                {issue.PropertyType ? (
+                  <Badge className={PROPERTY_TYPE_COLORS[issue.PropertyType] ?? 'bg-gray-100 text-gray-600'}>
+                    {issue.PropertyType}
+                  </Badge>
+                ) : <span className="text-gray-400">—</span>}
+              </Info>
+              <Info label="Reported By"  value={issue.ReportedBy || '—'} />
+              <Info
+                label="Category"
+                value={issue.Category === 'Other' && issue.OtherCategory
+                  ? `Other — ${issue.OtherCategory}`
+                  : issue.Category || '—'}
+              />
+              <Info label="Priority">
+                <Badge className={PRIORITY_COLORS[issue.Priority]}>{issue.Priority}</Badge>
+              </Info>
+            </div>
+
+            <div className="text-sm">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Description</p>
+              <p className="text-gray-800 bg-gray-50 rounded-lg p-3">{issue.Description}</p>
+            </div>
+
+            <hr className="border-gray-100" />
+
+            {/* Status & assignment */}
             <div className="grid grid-cols-2 gap-3 text-sm">
               <Info label="Status">
                 <Badge className={STATUS_COLORS[issue.Status]}>{issue.Status}</Badge>
               </Info>
-              <Info label="Assigned To" value={issue.AssignedTo || '—'} />
-              <Info label="Due Date" value={displayDate(issue.DueDate)} />
+              <Info label="Assigned To"    value={issue.AssignedTo    || '—'} />
+              <Info label="Due Date"       value={displayDate(issue.DueDate)} />
               <Info label="Date Completed" value={displayDate(issue.DateCompleted)} />
-              <Info label="Cost" value={issue.Cost ? `RM ${parseFloat(issue.Cost).toFixed(2)}` : '—'} />
+              <Info label="Cost"           value={issue.Cost ? `RM ${parseFloat(issue.Cost).toFixed(2)}` : '—'} />
             </div>
+
             {issue.Notes && (
               <div className="text-sm">
                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Notes</p>
                 <p className="text-gray-700 bg-gray-50 rounded-lg p-3">{issue.Notes}</p>
               </div>
             )}
+
             <div className="flex justify-end">
               <Button onClick={() => setEditing(true)}>Edit Issue</Button>
             </div>
@@ -186,4 +268,4 @@ function Field({ label, sub, children }) {
 }
 
 const selectCls = 'w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500';
-const inputCls = 'w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500';
+const inputCls  = 'w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500';

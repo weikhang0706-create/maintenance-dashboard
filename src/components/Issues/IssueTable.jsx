@@ -5,17 +5,65 @@ import { STATUS_COLORS, PRIORITY_COLORS, PROPERTY_TYPE_COLORS } from '../../util
 import { displayDate, isOverdue } from '../../utils/dateUtils';
 
 const COLUMNS = [
-  { key: 'IssueID', label: 'ID' },
   { key: 'DateReported', label: 'Reported' },
   { key: 'PropertyType', label: 'Type' },
-  { key: 'Location', label: 'Location' },
-  { key: 'Category', label: 'Category' },
-  { key: 'Description', label: 'Description' },
-  { key: 'Priority', label: 'Priority' },
-  { key: 'Status', label: 'Status' },
-  { key: 'AssignedTo', label: 'Assigned To' },
-  { key: 'DueDate', label: 'Due Date' },
+  { key: 'Condo',        label: 'Condo' },
+  { key: 'UnitNumber',   label: 'Unit No.' },
+  { key: 'RoomNumber',   label: 'Room' },
+  { key: 'Category',     label: 'Category' },
+  { key: 'Description',  label: 'Description' },
+  { key: 'Priority',     label: 'Priority' },
+  { key: 'Status',       label: 'Status' },
+  { key: 'AssignedTo',   label: 'Assigned To' },
+  { key: 'DueDate',      label: 'Due Date' },
 ];
+
+// Parse Condo/UnitNumber/RoomNumber from either separate fields or the Location string
+function getCondo(issue) {
+  if (issue.Condo) return issue.Condo;
+  return issue.Location?.split(' - ')[0] || '';
+}
+function getUnit(issue) {
+  if (issue.UnitNumber) return issue.UnitNumber;
+  const part = issue.Location?.split(' - ')[1] || '';
+  return part.replace(/^Unit\s+/i, '');
+}
+function getRoom(issue) {
+  if (issue.RoomNumber) return issue.RoomNumber;
+  return issue.Location?.split(' - ')[2] || '';
+}
+
+// Cell that truncates long text and lets user click a toggle to expand
+function ExpandableCell({ value, onRowClick }) {
+  const [expanded, setExpanded] = useState(false);
+  const isLong = value && value.length > 14;
+
+  return (
+    <td
+      className="px-4 py-3 text-sm text-gray-800 cursor-pointer"
+      onClick={onRowClick}
+    >
+      {value ? (
+        <div className="flex items-start gap-1">
+          <span className={expanded ? 'whitespace-normal break-words max-w-[200px]' : 'truncate max-w-[110px] block'}>
+            {value}
+          </span>
+          {isLong && (
+            <button
+              onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v); }}
+              className="shrink-0 text-[10px] text-blue-400 hover:text-blue-600 border border-blue-200 rounded px-1 leading-4 mt-0.5"
+              title={expanded ? 'Collapse' : 'Show full'}
+            >
+              {expanded ? '▲' : '▼'}
+            </button>
+          )}
+        </div>
+      ) : (
+        <span className="text-gray-300">—</span>
+      )}
+    </td>
+  );
+}
 
 export function IssueTable({ issues, onSelectIssue, onUpdate }) {
   const [sortKey, setSortKey] = useState('DateReported');
@@ -77,48 +125,44 @@ export function IssueTable({ issues, onSelectIssue, onUpdate }) {
             {sorted.map((issue) => {
               const overdue = isOverdue(issue);
               const active = isActive(issue);
+              const rowClick = () => onSelectIssue(issue);
               return (
                 <tr
                   key={issue.IssueID}
                   className={`transition-colors ${issue.Status === 'Done' ? 'opacity-60' : 'hover:bg-gray-50'}`}
                 >
-                  <td
-                    className="px-4 py-3 font-mono text-xs text-gray-600 whitespace-nowrap cursor-pointer"
-                    onClick={() => onSelectIssue(issue)}
-                  >{issue.IssueID}</td>
-                  <td
-                    className="px-4 py-3 text-gray-600 whitespace-nowrap cursor-pointer"
-                    onClick={() => onSelectIssue(issue)}
-                  >{displayDate(issue.DateReported)}</td>
-                  <td className="px-4 py-3 whitespace-nowrap cursor-pointer" onClick={() => onSelectIssue(issue)}>
+                  <td className="px-4 py-3 text-gray-600 whitespace-nowrap cursor-pointer" onClick={rowClick}>
+                    {displayDate(issue.DateReported)}
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap cursor-pointer" onClick={rowClick}>
                     {issue.PropertyType && (
                       <Badge className={PROPERTY_TYPE_COLORS[issue.PropertyType] ?? 'bg-gray-100 text-gray-600'}>
                         {issue.PropertyType}
                       </Badge>
                     )}
                   </td>
-                  <td
-                    className="px-4 py-3 text-gray-800 max-w-[130px] truncate cursor-pointer"
-                    onClick={() => onSelectIssue(issue)}
-                  >{issue.Location}</td>
-                  <td
-                    className="px-4 py-3 text-gray-600 whitespace-nowrap cursor-pointer"
-                    onClick={() => onSelectIssue(issue)}
-                  >{issue.Category}{issue.OtherCategory ? ` — ${issue.OtherCategory}` : ''}</td>
-                  <td className="px-4 py-3 text-gray-500 max-w-[220px] cursor-pointer" onClick={() => onSelectIssue(issue)}>
+
+                  {/* 3 expandable location columns */}
+                  <ExpandableCell value={getCondo(issue)}  onRowClick={rowClick} />
+                  <ExpandableCell value={getUnit(issue)}   onRowClick={rowClick} />
+                  <ExpandableCell value={getRoom(issue)}   onRowClick={rowClick} />
+
+                  <td className="px-4 py-3 text-gray-600 whitespace-nowrap cursor-pointer" onClick={rowClick}>
+                    {issue.Category}{issue.OtherCategory ? ` — ${issue.OtherCategory}` : ''}
+                  </td>
+                  <td className="px-4 py-3 text-gray-500 max-w-[220px] cursor-pointer" onClick={rowClick}>
                     <span className="line-clamp-2 leading-snug">{issue.Description}</span>
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap cursor-pointer" onClick={() => onSelectIssue(issue)}>
+                  <td className="px-4 py-3 whitespace-nowrap cursor-pointer" onClick={rowClick}>
                     <Badge className={PRIORITY_COLORS[issue.Priority]}>{issue.Priority}</Badge>
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap cursor-pointer" onClick={() => onSelectIssue(issue)}>
+                  <td className="px-4 py-3 whitespace-nowrap cursor-pointer" onClick={rowClick}>
                     <Badge className={STATUS_COLORS[issue.Status]}>{issue.Status}</Badge>
                   </td>
-                  <td
-                    className="px-4 py-3 text-gray-600 whitespace-nowrap cursor-pointer"
-                    onClick={() => onSelectIssue(issue)}
-                  >{issue.AssignedTo || '—'}</td>
-                  <td className="px-4 py-3 whitespace-nowrap cursor-pointer" onClick={() => onSelectIssue(issue)}>
+                  <td className="px-4 py-3 text-gray-600 whitespace-nowrap cursor-pointer" onClick={rowClick}>
+                    {issue.AssignedTo || '—'}
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap cursor-pointer" onClick={rowClick}>
                     <span className={overdue ? 'text-red-600 font-semibold' : 'text-gray-600'}>
                       {displayDate(issue.DueDate)}
                       {overdue && (
