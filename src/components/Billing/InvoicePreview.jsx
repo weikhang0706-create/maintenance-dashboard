@@ -10,6 +10,9 @@ export function InvoicePreview({ isOpen, onClose, invoiceNumber, invoiceDate, is
   const [companyAddress, setCompanyAddress] = useState(() => localStorage.getItem('inv_address') || '');
   const [companyPhone, setCompanyPhone] = useState(() => localStorage.getItem('inv_phone') || '');
   const [companyEmail, setCompanyEmail] = useState(() => localStorage.getItem('inv_email') || '');
+  const [bankName, setBankName] = useState(() => localStorage.getItem('inv_bank_name') || '');
+  const [bankAccName, setBankAccName] = useState(() => localStorage.getItem('inv_bank_acc_name') || '');
+  const [bankAccNo, setBankAccNo] = useState(() => localStorage.getItem('inv_bank_acc_no') || '');
   const [notes, setNotes] = useState('');
   const [confirmed, setConfirmed] = useState(false);
 
@@ -31,6 +34,9 @@ export function InvoicePreview({ isOpen, onClose, invoiceNumber, invoiceDate, is
     localStorage.setItem('inv_address', companyAddress);
     localStorage.setItem('inv_phone', companyPhone);
     localStorage.setItem('inv_email', companyEmail);
+    localStorage.setItem('inv_bank_name', bankName);
+    localStorage.setItem('inv_bank_acc_name', bankAccName);
+    localStorage.setItem('inv_bank_acc_no', bankAccNo);
   };
 
   const handlePrint = () => {
@@ -124,6 +130,16 @@ export function InvoicePreview({ isOpen, onClose, invoiceNumber, invoiceDate, is
 
         ${notes ? `<div class="notes"><div class="notes-label">Notes</div>${notes}</div>` : ''}
 
+        ${(bankName || bankAccName || bankAccNo) ? `
+        <div style="margin-top:24px;padding:16px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;">
+          <div style="font-size:11px;font-weight:bold;text-transform:uppercase;color:#166534;letter-spacing:1px;margin-bottom:10px;">Payment Details</div>
+          <table style="border-collapse:collapse;width:auto">
+            ${bankName    ? `<tr><td style="font-size:12px;color:#555;padding:2px 16px 2px 0;font-weight:bold">Bank</td><td style="font-size:13px;color:#111">${bankName}</td></tr>` : ''}
+            ${bankAccName ? `<tr><td style="font-size:12px;color:#555;padding:2px 16px 2px 0;font-weight:bold">Account Name</td><td style="font-size:13px;color:#111">${bankAccName}</td></tr>` : ''}
+            ${bankAccNo   ? `<tr><td style="font-size:12px;color:#555;padding:2px 16px 2px 0;font-weight:bold">Account No.</td><td style="font-size:14px;font-weight:bold;color:#166534;letter-spacing:1px">${bankAccNo}</td></tr>` : ''}
+          </table>
+        </div>` : ''}
+
         <div class="footer">Thank you for your business. Please make payment within 30 days of invoice date.</div>
       </body>
       </html>
@@ -190,6 +206,43 @@ export function InvoicePreview({ isOpen, onClose, invoiceNumber, invoiceDate, is
                 value={companyAddress}
                 onChange={(e) => setCompanyAddress(e.target.value)}
                 placeholder="e.g. No. 1, Jalan Example, 50000 Kuala Lumpur"
+                className={inputCls}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Bank account details — saved automatically */}
+        <div className="bg-green-50 border border-green-200 rounded-xl p-4 space-y-3">
+          <p className="text-xs font-semibold text-green-700 uppercase tracking-wide">Bank Account Details <span className="font-normal text-green-500 normal-case">(saved automatically)</span></p>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelCls}>Bank Name</label>
+              <input
+                type="text"
+                value={bankName}
+                onChange={(e) => setBankName(e.target.value)}
+                placeholder="e.g. Maybank"
+                className={inputCls}
+              />
+            </div>
+            <div>
+              <label className={labelCls}>Account Name</label>
+              <input
+                type="text"
+                value={bankAccName}
+                onChange={(e) => setBankAccName(e.target.value)}
+                placeholder="e.g. ABC Property Management Sdn Bhd"
+                className={inputCls}
+              />
+            </div>
+            <div>
+              <label className={labelCls}>Account Number</label>
+              <input
+                type="text"
+                value={bankAccNo}
+                onChange={(e) => setBankAccNo(e.target.value)}
+                placeholder="e.g. 1234 5678 9012"
                 className={inputCls}
               />
             </div>
