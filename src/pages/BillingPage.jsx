@@ -6,7 +6,7 @@ import { Button } from '../components/UI/Button';
 import { InvoicePreview } from '../components/Billing/InvoicePreview';
 import { PROPERTY_TYPES, PROPERTY_TYPE_COLORS, INVOICE_STATUSES, INVOICE_STATUS_COLORS } from '../utils/constants';
 import { displayDate, todayISO } from '../utils/dateUtils';
-import { generateInvoiceNumber } from '../utils/issueUtils';
+import { generateInvoiceNumber, saveInvoiceWatermark } from '../utils/issueUtils';
 
 const BILLING_CSV_COLS = [
   { label: 'Issue ID',        key: 'IssueID' },
@@ -123,6 +123,7 @@ export function BillingPage({ issues, onUpdate, units = [] }) {
   };
 
   const handleConfirmInvoice = ({ billedTo, invoiceNumber: invNum, invoiceDate }) => {
+    saveInvoiceWatermark(invNum);
     // Save bill amounts first, then mark as Invoiced
     Object.entries(billAmounts).forEach(([id, amount]) => {
       if (selected.has(id)) onUpdate(id, { BillAmount: amount });
