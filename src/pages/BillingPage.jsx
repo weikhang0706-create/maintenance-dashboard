@@ -211,7 +211,9 @@ export function BillingPage({ issues, onUpdate }) {
               </th>
               <th className={thCls}>Issue</th>
               <th className={thCls}>Type</th>
-              <th className={thCls}>Location</th>
+              <th className={thCls}>Condo</th>
+              <th className={thCls}>Unit No.</th>
+              <th className={thCls}>Room</th>
               <th className={thCls}>Category</th>
               <th className={thCls}>Completed</th>
               <th className={`${thCls} text-right`}>Repair Cost</th>
@@ -225,7 +227,7 @@ export function BillingPage({ issues, onUpdate }) {
           <tbody className="divide-y divide-gray-100 bg-white">
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={12} className="text-center py-12 text-gray-400">
+                <td colSpan={14} className="text-center py-12 text-gray-400">
                   <p className="text-3xl mb-2">💳</p>
                   <p>No billing records match your filters.</p>
                 </td>
@@ -258,7 +260,9 @@ export function BillingPage({ issues, onUpdate }) {
                         {issue.PropertyType}
                       </Badge>
                     </td>
-                    <td className="px-4 py-3 text-gray-700 max-w-[130px] truncate">{issue.Location}</td>
+                    <ExpandableCell value={getCondo(issue)} />
+                    <ExpandableCell value={getUnit(issue)} />
+                    <ExpandableCell value={getRoom(issue)} />
                     <td className="px-4 py-3 text-gray-600">{issue.Category}</td>
                     <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{displayDate(issue.DateCompleted)}</td>
                     <td className="px-4 py-3 text-right text-gray-600">
@@ -336,6 +340,46 @@ export function BillingPage({ issues, onUpdate }) {
         onConfirm={handleConfirmInvoice}
       />
     </div>
+  );
+}
+
+function getCondo(issue) {
+  if (issue.Condo) return issue.Condo;
+  return issue.Location?.split(' - ')[0] || '';
+}
+function getUnit(issue) {
+  if (issue.UnitNumber) return issue.UnitNumber;
+  const part = issue.Location?.split(' - ')[1] || '';
+  return part.replace(/^Unit\s+/i, '');
+}
+function getRoom(issue) {
+  if (issue.RoomNumber) return issue.RoomNumber;
+  return issue.Location?.split(' - ')[2] || '';
+}
+
+function ExpandableCell({ value }) {
+  const [expanded, setExpanded] = useState(false);
+  const isLong = value && value.length > 14;
+  return (
+    <td className="px-4 py-3 text-sm text-gray-700">
+      {value ? (
+        <div className="flex items-start gap-1">
+          <span className={expanded ? 'whitespace-normal break-words max-w-[160px]' : 'truncate max-w-[100px] block'}>
+            {value}
+          </span>
+          {isLong && (
+            <button
+              onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v); }}
+              className="shrink-0 text-[10px] text-blue-400 hover:text-blue-600 border border-blue-200 rounded px-1 leading-4 mt-0.5"
+            >
+              {expanded ? '▲' : '▼'}
+            </button>
+          )}
+        </div>
+      ) : (
+        <span className="text-gray-300">—</span>
+      )}
+    </td>
   );
 }
 
