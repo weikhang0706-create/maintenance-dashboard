@@ -5,13 +5,22 @@ import { displayDate } from '../../utils/dateUtils';
 
 export function InvoicePreview({ isOpen, onClose, invoiceNumber, invoiceDate, issues, onConfirm }) {
   const [billedTo, setBilledTo] = useState('');
-  const [companyName, setCompanyName] = useState('');
+  const [companyName, setCompanyName] = useState(() => localStorage.getItem('inv_company') || '');
+  const [companyAddress, setCompanyAddress] = useState(() => localStorage.getItem('inv_address') || '');
+  const [companyPhone, setCompanyPhone] = useState(() => localStorage.getItem('inv_phone') || '');
   const [notes, setNotes] = useState('');
   const [confirmed, setConfirmed] = useState(false);
 
   const total = issues.reduce((s, i) => s + (parseFloat(i.BillAmount) || 0), 0);
 
+  const saveCompanyInfo = () => {
+    localStorage.setItem('inv_company', companyName);
+    localStorage.setItem('inv_address', companyAddress);
+    localStorage.setItem('inv_phone', companyPhone);
+  };
+
   const handlePrint = () => {
+    saveCompanyInfo();
     const rows = issues.map((i) => `
       <tr>
         <td>${i.IssueID}</td>
@@ -59,7 +68,8 @@ export function InvoicePreview({ isOpen, onClose, invoiceNumber, invoiceDate, is
         <div class="header">
           <div>
             <div class="company">${companyName || '[Your Company Name]'}</div>
-            <div class="company-sub">Property Maintenance Services</div>
+            ${companyAddress ? `<div class="company-sub">${companyAddress}</div>` : ''}
+            ${companyPhone ? `<div class="company-sub">Tel: ${companyPhone}</div>` : ''}
           </div>
           <div class="invoice-meta">
             <div class="invoice-title">INVOICE</div>
@@ -72,6 +82,8 @@ export function InvoicePreview({ isOpen, onClose, invoiceNumber, invoiceDate, is
           <div>
             <div class="party-label">From</div>
             <div class="party-name">${companyName || '[Your Company Name]'}</div>
+            ${companyAddress ? `<div style="font-size:12px;color:#555;margin-top:3px">${companyAddress}</div>` : ''}
+            ${companyPhone ? `<div style="font-size:12px;color:#555">Tel: ${companyPhone}</div>` : ''}
           </div>
           <div>
             <div class="party-label">Bill To</div>
@@ -116,10 +128,10 @@ export function InvoicePreview({ isOpen, onClose, invoiceNumber, invoiceDate, is
   };
 
   const handleConfirmAndClose = () => {
+    saveCompanyInfo();
     onConfirm({ billedTo, invoiceNumber, invoiceDate });
     setConfirmed(false);
     setBilledTo('');
-    setCompanyName('');
     setNotes('');
     onClose();
   };
@@ -127,18 +139,45 @@ export function InvoicePreview({ isOpen, onClose, invoiceNumber, invoiceDate, is
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={`Generate Invoice — ${invoiceNumber}`}>
       <div className="space-y-5">
+        {/* Company info — saved automatically */}
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 space-y-3">
+          <p className="text-xs font-semibold text-blue-700 uppercase tracking-wide">Your Company Info <span className="font-normal text-blue-500 normal-case">(saved automatically)</span></p>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelCls}>Company Name</label>
+              <input
+                type="text"
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
+                placeholder="e.g. ABC Property Management"
+                className={inputCls}
+              />
+            </div>
+            <div>
+              <label className={labelCls}>Phone Number</label>
+              <input
+                type="text"
+                value={companyPhone}
+                onChange={(e) => setCompanyPhone(e.target.value)}
+                placeholder="e.g. 03-1234 5678"
+                className={inputCls}
+              />
+            </div>
+            <div className="col-span-2">
+              <label className={labelCls}>Address</label>
+              <input
+                type="text"
+                value={companyAddress}
+                onChange={(e) => setCompanyAddress(e.target.value)}
+                placeholder="e.g. No. 1, Jalan Example, 50000 Kuala Lumpur"
+                className={inputCls}
+              />
+            </div>
+          </div>
+        </div>
+
         {/* Invoice meta */}
         <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className={labelCls}>Your Company Name</label>
-            <input
-              type="text"
-              value={companyName}
-              onChange={(e) => setCompanyName(e.target.value)}
-              placeholder="e.g. ABC Property Management"
-              className={inputCls}
-            />
-          </div>
           <div>
             <label className={labelCls}>Bill To *</label>
             <input
@@ -149,13 +188,15 @@ export function InvoicePreview({ isOpen, onClose, invoiceNumber, invoiceDate, is
               className={inputCls}
             />
           </div>
-          <div>
-            <label className={labelCls}>Invoice Number</label>
-            <input type="text" value={invoiceNumber} readOnly className={`${inputCls} bg-gray-50 text-gray-500`} />
-          </div>
-          <div>
-            <label className={labelCls}>Invoice Date</label>
-            <input type="text" value={displayDate(invoiceDate)} readOnly className={`${inputCls} bg-gray-50 text-gray-500`} />
+          <div className="grid grid-cols-2 gap-3 col-span-1">
+            <div>
+              <label className={labelCls}>Invoice Number</label>
+              <input type="text" value={invoiceNumber} readOnly className={`${inputCls} bg-gray-50 text-gray-500`} />
+            </div>
+            <div>
+              <label className={labelCls}>Invoice Date</label>
+              <input type="text" value={displayDate(invoiceDate)} readOnly className={`${inputCls} bg-gray-50 text-gray-500`} />
+            </div>
           </div>
         </div>
 
