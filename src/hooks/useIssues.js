@@ -11,7 +11,9 @@ export function useIssues() {
   const [syncStatus, setSyncStatus] = useState('idle'); // idle | syncing | saved | error
   const syncTimer = useRef(null);
 
-  // Load on mount
+  const isSyncing = useRef(false);
+
+  // Load on mount + auto-poll every 30 s for real-time multi-user sync
   useEffect(() => {
     if (!canRead()) {
       setIssues(MOCK_ISSUES);
@@ -19,16 +21,23 @@ export function useIssues() {
       return;
     }
 
-    sheetsRead()
-      .then((data) => {
-        setIssues(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError(`Could not load from Google Sheets: ${err.message}.`);
-        setIssues([]);
-        setLoading(false);
-      });
+    const fetchIssues = () => {
+      if (isSyncing.current) return; // skip poll while a write is in flight
+      sheetsRead()
+        .then((data) => {
+          setIssues(data);
+          setLoading(false);
+          setError(null);
+        })
+        .catch((err) => {
+          setError(`Could not load from Google Sheets: ${err.message}.`);
+          setLoading(false);
+        });
+    };
+
+    fetchIssues();
+    const pollInterval = setInterval(fetchIssues, 30000);
+    return () => clearInterval(pollInterval);
   }, []);
 
   const markSaved = () => {
@@ -39,6 +48,7 @@ export function useIssues() {
 
   const syncCreate = useCallback(async (issue) => {
     if (!canWrite()) return;
+    isSyncing.current = true;
     setSyncStatus('syncing');
     try {
       await sheetsCreate(issue);
@@ -46,11 +56,14 @@ export function useIssues() {
     } catch (err) {
       setSyncStatus('error');
       console.error('[Sheets] create failed:', err.message);
+    } finally {
+      isSyncing.current = false;
     }
   }, []);
 
   const syncUpdate = useCallback(async (issue) => {
     if (!canWrite()) return;
+    isSyncing.current = true;
     setSyncStatus('syncing');
     try {
       await sheetsUpdate(issue);
@@ -58,6 +71,8 @@ export function useIssues() {
     } catch (err) {
       setSyncStatus('error');
       console.error('[Sheets] update failed:', err.message);
+    } finally {
+      isSyncing.current = false;
     }
   }, []);
 
