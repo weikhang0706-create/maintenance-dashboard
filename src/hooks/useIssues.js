@@ -12,6 +12,7 @@ export function useIssues() {
   const syncTimer = useRef(null);
 
   const isSyncing = useRef(false);
+  const lastWriteAt = useRef(0);
 
   // Load on mount + auto-poll every 30 s for real-time multi-user sync
   useEffect(() => {
@@ -22,10 +23,18 @@ export function useIssues() {
     }
 
     const fetchIssues = () => {
-      if (isSyncing.current) return; // skip poll while a write is in flight
+      if (isSyncing.current) return; // skip while write is in flight
+      if (Date.now() - lastWriteAt.current < 10000) return; // 10s grace after write for Sheets propagation
       sheetsRead()
         .then((data) => {
-          setIssues(data);
+          // Deduplicate by IssueID — keep last row per ID in case Apps Script ever appended duplicates
+          const seen = new Set();
+          const deduped = [...data].reverse().filter((i) => {
+            if (seen.has(i.IssueID)) return false;
+            seen.add(i.IssueID);
+            return true;
+          }).reverse();
+          setIssues(deduped);
           setLoading(false);
           setError(null);
         })
@@ -41,6 +50,7 @@ export function useIssues() {
   }, []);
 
   const markSaved = () => {
+    lastWriteAt.current = Date.now(); // record write time so poll waits before overwriting
     setSyncStatus('saved');
     clearTimeout(syncTimer.current);
     syncTimer.current = setTimeout(() => setSyncStatus('idle'), 3000);
