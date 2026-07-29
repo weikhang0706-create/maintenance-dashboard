@@ -37,10 +37,6 @@ export function InvoicePreview({ isOpen, onClose, invoiceNumber, invoiceDate, is
     saveCompanyInfo();
     const rows = issues.map((i) => `
       <tr>
-        <td>${i.IssueID}</td>
-        <td>${i.PropertyType ?? ''}</td>
-        <td>${i.Location}</td>
-        <td>${i.Category}</td>
         <td>${i.Description}</td>
         <td style="text-align:right">RM ${parseFloat(i.Cost || 0).toFixed(2)}</td>
         <td style="text-align:right"><strong>RM ${parseFloat(i.BillAmount || 0).toFixed(2)}</strong></td>
@@ -111,10 +107,6 @@ export function InvoicePreview({ isOpen, onClose, invoiceNumber, invoiceDate, is
         <table>
           <thead>
             <tr>
-              <th>Issue ID</th>
-              <th>Type</th>
-              <th>Location</th>
-              <th>Category</th>
               <th>Description</th>
               <th>Cost (RM)</th>
               <th>Bill Amount (RM)</th>
@@ -123,7 +115,7 @@ export function InvoicePreview({ isOpen, onClose, invoiceNumber, invoiceDate, is
           <tbody>
             ${rows}
             <tr class="total-row">
-              <td colspan="5" style="text-align:right">Total</td>
+              <td style="text-align:right">Total</td>
               <td style="text-align:right">RM ${issues.reduce((s,i)=>s+(parseFloat(i.Cost||0)),0).toFixed(2)}</td>
               <td style="text-align:right">RM ${total.toFixed(2)}</td>
             </tr>
@@ -245,8 +237,6 @@ export function InvoicePreview({ isOpen, onClose, invoiceNumber, invoiceDate, is
             <table className="w-full text-sm">
               <thead className="bg-gray-50 text-xs text-gray-500 uppercase">
                 <tr>
-                  <th className="px-3 py-2 text-left">Issue</th>
-                  <th className="px-3 py-2 text-left">Location</th>
                   <th className="px-3 py-2 text-left">Description</th>
                   <th className="px-3 py-2 text-right">Cost</th>
                   <th className="px-3 py-2 text-right">Bill Amount</th>
@@ -255,9 +245,7 @@ export function InvoicePreview({ isOpen, onClose, invoiceNumber, invoiceDate, is
               <tbody className="divide-y divide-gray-100">
                 {issues.map((i) => (
                   <tr key={i.IssueID}>
-                    <td className="px-3 py-2 font-mono text-xs text-gray-500">{i.IssueID}</td>
-                    <td className="px-3 py-2 text-gray-700">{i.Location}</td>
-                    <td className="px-3 py-2 text-gray-500 max-w-[180px] truncate">{i.Description}</td>
+                    <td className="px-3 py-2 text-gray-700">{i.Description}</td>
                     <td className="px-3 py-2 text-right text-gray-500">RM {parseFloat(i.Cost || 0).toFixed(2)}</td>
                     <td className="px-3 py-2 text-right font-semibold text-gray-900">RM {parseFloat(i.BillAmount || 0).toFixed(2)}</td>
                   </tr>
@@ -265,7 +253,7 @@ export function InvoicePreview({ isOpen, onClose, invoiceNumber, invoiceDate, is
               </tbody>
               <tfoot className="bg-blue-50 border-t-2 border-blue-200">
                 <tr>
-                  <td colSpan={3} className="px-3 py-2 text-right text-sm font-bold text-gray-700">Total</td>
+                  <td className="px-3 py-2 text-right text-sm font-bold text-gray-700">Total</td>
                   <td className="px-3 py-2 text-right text-sm text-gray-500">
                     RM {issues.reduce((s, i) => s + (parseFloat(i.Cost || 0)), 0).toFixed(2)}
                   </td>
