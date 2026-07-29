@@ -13,8 +13,6 @@ const EMPTY = {
   Status: 'Active',
   Notes: '',
   OwnerName: '',
-  OwnerPhone: '',
-  OwnerEmail: '',
   OwnerAddress: '',
 };
 
@@ -135,24 +133,14 @@ export function UnitModal({ isOpen, onClose, onSave, existing }) {
         {/* Owner details */}
         <div className="border-t border-gray-100 pt-4">
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Owner Details <span className="font-normal normal-case text-gray-400">(used for invoice billing)</span></p>
-          <div className="grid grid-cols-2 gap-4">
-            <Field label="Owner Name">
-              <input type="text" value={form.OwnerName} onChange={field('OwnerName')}
-                placeholder="e.g. Tan Ah Kow" className={cls()} />
-            </Field>
-            <Field label="Owner Phone">
-              <input type="text" value={form.OwnerPhone} onChange={field('OwnerPhone')}
-                placeholder="e.g. 012-3456789" className={cls()} />
-            </Field>
-            <Field label="Owner Email">
-              <input type="email" value={form.OwnerEmail} onChange={field('OwnerEmail')}
-                placeholder="e.g. owner@email.com" className={cls()} />
-            </Field>
-          </div>
+          <Field label="Owner Name">
+            <input type="text" value={form.OwnerName} onChange={field('OwnerName')}
+              placeholder="e.g. Tan Ah Kow" className={cls()} />
+          </Field>
           <div className="mt-3">
-            <Field label="Owner Mailing Address">
+            <Field label="Unit Full Address">
               <textarea value={form.OwnerAddress} onChange={field('OwnerAddress')}
-                placeholder="Full mailing address for invoice delivery"
+                placeholder="e.g. Unit 3A, Block A, Residensi ABC, No. 1 Jalan XYZ, 50000 Kuala Lumpur"
                 rows={2} className={`${cls()} resize-none`} />
             </Field>
           </div>

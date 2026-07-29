@@ -27,8 +27,8 @@ async function readTab(tab, lastCol) {
 // Read issues (MAINT_Issues tab, columns A–W)
 export const sheetsRead = () => readTab(TAB_ISSUES, 'W');
 
-// Read units (UNITS tab, columns A–M, includes owner fields)
-export const unitsRead  = () => readTab(TAB_UNITS, 'M');
+// Read units (UNITS tab, columns A–K, includes owner fields)
+export const unitsRead  = () => readTab(TAB_UNITS, 'K');
 
 // Generic Apps Script caller — uses GET with encoded JSON to avoid CORS preflight
 async function scriptCall(action, data) {

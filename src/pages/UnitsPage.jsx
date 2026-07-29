@@ -129,12 +129,9 @@ export function UnitsPage({ units, onAddUnit, onUpdateUnit }) {
                     ) : <span className="text-gray-300 text-xs">—</span>}
                   </td>
                   <td className="px-4 py-3">
-                    {unit.OwnerName ? (
-                      <div>
-                        <p className="text-sm text-gray-800 font-medium">{unit.OwnerName}</p>
-                        {unit.OwnerPhone && <p className="text-xs text-gray-400">{unit.OwnerPhone}</p>}
-                      </div>
-                    ) : <span className="text-gray-300 text-xs">—</span>}
+                    {unit.OwnerName
+                      ? <p className="text-sm text-gray-800 font-medium">{unit.OwnerName}</p>
+                      : <span className="text-gray-300 text-xs">—</span>}
                   </td>
                   <td className="px-4 py-3">
                     <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${unit.Status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>
