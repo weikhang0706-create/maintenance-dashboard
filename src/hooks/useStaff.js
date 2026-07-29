@@ -23,13 +23,14 @@ export function useStaff() {
 
   useEffect(() => {
     if (!canRead()) {
+      // No Sheets connection — use mock data for local dev only
       setStaff(MOCK_STAFF);
       setLoading(false);
       return;
     }
     staffRead()
-      .then((data) => { setStaff(data.length > 0 ? data : MOCK_STAFF); setLoading(false); })
-      .catch(() => { setStaff(MOCK_STAFF); setLoading(false); });
+      .then((data) => { setStaff(data); setLoading(false); })
+      .catch(() => { setStaff([]); setLoading(false); });
   }, []);
 
   const addStaff = useCallback((formData) => {
@@ -58,8 +59,9 @@ export function useStaff() {
 
   // Active staff names for use in dropdowns
   const activeStaffNames = staff
-    .filter((s) => s.Status === 'Active')
-    .map((s) => s.Name);
+    .filter((s) => s.Status?.toLowerCase() === 'active')
+    .map((s) => s.Name)
+    .filter(Boolean);
 
   return { staff, loading, addStaff, updateStaff, deleteStaff, activeStaffNames };
 }
