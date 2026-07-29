@@ -7,7 +7,7 @@ import { IssueDetailModal } from '../components/Issues/IssueDetailModal';
 import { Button } from '../components/UI/Button';
 import { isOverdue } from '../utils/dateUtils';
 
-export function IssuesPage({ issues, onUpdate }) {
+export function IssuesPage({ issues, onUpdate, onDelete }) {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [selected, setSelected] = useState(null);
@@ -35,7 +35,10 @@ export function IssuesPage({ issues, onUpdate }) {
       if (filters.status && issue.Status !== filters.status) return false;
       if (filters.priority && issue.Priority !== filters.priority) return false;
       if (filters.category && issue.Category !== filters.category) return false;
-      if (filters.location && !issue.Location.toLowerCase().includes(filters.location.toLowerCase())) return false;
+      if (filters.location) {
+        const loc = `${issue.Location || ''} ${issue.Condo || ''} ${issue.UnitNumber || ''} ${issue.RoomNumber || ''}`.toLowerCase();
+        if (!loc.includes(filters.location.toLowerCase())) return false;
+      }
       return true;
     });
   }, [issues, filters]);
@@ -59,6 +62,10 @@ export function IssuesPage({ issues, onUpdate }) {
         onUpdate={(id, changes) => {
           onUpdate(id, changes);
           setSelected((prev) => ({ ...prev, ...changes }));
+        }}
+        onDelete={(id) => {
+          onDelete(id);
+          setSelected(null);
         }}
       />
     </div>

@@ -40,7 +40,8 @@ async function scriptCall(action, data) {
   return body;
 }
 
-export const sheetsCreate = (issue) => scriptCall('create',     issue);
-export const sheetsUpdate = (issue) => scriptCall('update',     issue);
-export const unitsCreate  = (unit)  => scriptCall('createUnit', unit);
-export const unitsUpdate  = (unit)  => scriptCall('updateUnit', unit);
+export const sheetsCreate = (issue)   => scriptCall('create',     issue);
+export const sheetsUpdate = (issue)   => scriptCall('update',     issue);
+export const sheetsDelete = (issueID) => scriptCall('delete',     { IssueID: issueID });
+export const unitsCreate  = (unit)    => scriptCall('createUnit', unit);
+export const unitsUpdate  = (unit)    => scriptCall('updateUnit', unit);

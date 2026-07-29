@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { MOCK_ISSUES } from '../data/mockData';
 import { generateIssueID } from '../utils/issueUtils';
 import { todayISO } from '../utils/dateUtils';
-import { canRead, canWrite, sheetsRead, sheetsCreate, sheetsUpdate } from './useGoogleSheets';
+import { canRead, canWrite, sheetsRead, sheetsCreate, sheetsUpdate, sheetsDelete } from './useGoogleSheets';
 
 export function useIssues() {
   const [issues, setIssues] = useState([]);
@@ -107,24 +107,38 @@ export function useIssues() {
   }, [syncCreate]);
 
   const updateIssue = useCallback((issueID, changes) => {
-    setIssues((prev) =>
-      prev.map((issue) => {
+    // Compute the updated issue first, then set state and sync separately
+    // (avoids calling syncUpdate inside a React state updater which can run multiple times)
+    setIssues((prev) => {
+      const next = prev.map((issue) => {
         if (issue.IssueID !== issueID) return issue;
         const updated = { ...issue, ...changes };
-        if (changes.Status === 'Done' && !updated.DateCompleted) {
-          updated.DateCompleted = todayISO();
-        }
-        if (changes.Status && changes.Status !== 'Done') {
-          updated.DateCompleted = '';
-        }
-        if (changes.AssignedTo && updated.Status === 'Open') {
-          updated.Status = 'Assigned';
-        }
-        syncUpdate(updated);
+        if (changes.Status === 'Done' && !updated.DateCompleted) updated.DateCompleted = todayISO();
+        if (changes.Status && changes.Status !== 'Done') updated.DateCompleted = '';
+        if (changes.AssignedTo && updated.Status === 'Open') updated.Status = 'Assigned';
         return updated;
-      })
-    );
+      });
+      const updated = next.find((i) => i.IssueID === issueID);
+      if (updated) syncUpdate(updated);
+      return next;
+    });
   }, [syncUpdate]);
 
-  return { issues, loading, error, syncStatus, addIssue, updateIssue };
+  const deleteIssue = useCallback(async (issueID) => {
+    setIssues((prev) => prev.filter((i) => i.IssueID !== issueID));
+    if (!canWrite()) return;
+    isSyncing.current = true;
+    setSyncStatus('syncing');
+    try {
+      await sheetsDelete(issueID);
+      markSaved();
+    } catch (err) {
+      setSyncStatus('error');
+      console.error('[Sheets] delete failed:', err.message);
+    } finally {
+      isSyncing.current = false;
+    }
+  }, []);
+
+  return { issues, loading, error, syncStatus, addIssue, updateIssue, deleteIssue };
 }

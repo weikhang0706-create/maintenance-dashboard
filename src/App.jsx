@@ -11,7 +11,7 @@ import { useIssues } from './hooks/useIssues';
 import { useUnits } from './hooks/useUnits';
 
 export default function App() {
-  const { issues, loading, error, syncStatus, addIssue, updateIssue } = useIssues();
+  const { issues, loading, error, syncStatus, addIssue, updateIssue, deleteIssue } = useIssues();
   const { units, addUnit, updateUnit } = useUnits();
 
   return (
@@ -41,7 +41,7 @@ export default function App() {
             <Routes>
               <Route path="/"              element={<DashboardPage    issues={issues} onUpdate={updateIssue} />} />
               <Route path="/property-view" element={<PropertyViewPage issues={issues} onUpdate={updateIssue} />} />
-              <Route path="/issues"        element={<IssuesPage       issues={issues} onUpdate={updateIssue} />} />
+              <Route path="/issues"        element={<IssuesPage       issues={issues} onUpdate={updateIssue} onDelete={deleteIssue} />} />
               <Route path="/billing"       element={<BillingPage      issues={issues} onUpdate={updateIssue} />} />
               <Route path="/units"         element={<UnitsPage        units={units}   onAddUnit={addUnit} onUpdateUnit={updateUnit} />} />
               <Route path="/report"        element={<ReportPage       onAddIssue={addIssue} units={units} />} />
