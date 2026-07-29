@@ -27,10 +27,10 @@ export function Sidebar({ overdueCount = 0, onLogout, mobileOpen, onMobileClose 
         md:static md:w-56 md:translate-x-0 md:shrink-0
         ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
-        <div className="px-5 py-5 border-b border-gray-700 flex items-center justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-gray-400">Maintenance</p>
-            <p className="text-lg font-bold mt-0.5">Dashboard</p>
+        <div className="px-4 py-4 border-b border-gray-700 flex items-center justify-between">
+          <div className="flex flex-col gap-2">
+            <img src="/ck-group-logo.png" alt="CK Group" className="h-10 w-auto object-contain" />
+            <p className="text-xs font-semibold uppercase tracking-widest text-gray-400">Maintenance Dashboard</p>
           </div>
           {/* Close button — mobile only */}
           <button

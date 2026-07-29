@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60">
+  <!-- Blue background badge -->
+  <rect width="200" height="60" rx="10" fill="#1e3a5f"/>
+  <!-- Yellow accent bar -->
+  <rect x="0" y="44" width="200" height="6" rx="0" fill="#f5c400"/>
+  <rect x="0" y="50" width="200" height="10" rx="0" fill="#f5c400"/>
+  <rect x="0" y="44" width="200" height="16" rx="0" fill="#f5c400"/>
+  <!-- CK letters -->
+  <text x="16" y="38" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="30" fill="#f5c400" letter-spacing="2">CK</text>
+  <!-- GROUP text -->
+  <text x="76" y="36" font-family="Arial, sans-serif" font-weight="700" font-size="18" fill="#ffffff" letter-spacing="3">GROUP</text>
+  <!-- Yellow underline for CK -->
+  <rect x="16" y="42" width="52" height="3" rx="1" fill="#f5c400"/>
+</svg>

@@ -70,7 +70,7 @@ export default function App() {
             >
               <span className="text-2xl leading-none">☰</span>
             </button>
-            <p className="text-sm font-bold">Maintenance Dashboard</p>
+            <img src="/ck-group-logo.png" alt="CK Group" className="h-8 w-auto object-contain" />
             {overdueCount > 0 && (
               <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
                 {overdueCount} overdue

@@ -94,10 +94,15 @@ export function DashboardPage({ issues, onUpdate, onDelete, staffNames }) {
 
   return (
     <div>
-      <Header
-        title="Maintenance Dashboard"
-        subtitle={`Overview for ${new Date().toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}`}
-      />
+      <div className="flex items-center gap-4 mb-6">
+        <img src="/ck-group-logo.png" alt="CK Group" className="h-12 w-auto object-contain hidden md:block" />
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Maintenance Dashboard</h1>
+          <p className="text-sm text-gray-500 mt-0.5">
+            Overview for {new Date().toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}
+          </p>
+        </div>
+      </div>
 
       {/* Property type tabs */}
       <div className="flex gap-1 mb-6 bg-gray-100 rounded-xl p-1 w-fit">
