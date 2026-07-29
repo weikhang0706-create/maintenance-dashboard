@@ -17,6 +17,7 @@ import { isOverdue } from './utils/dateUtils';
 
 export default function App() {
   const [authed, setAuthed] = useState(() => sessionStorage.getItem('maint_auth') === '1');
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   const { issues, loading, error, syncStatus, addIssue, updateIssue, deleteIssue } = useIssues();
   const { units, addUnit, updateUnit } = useUnits();
@@ -54,8 +55,29 @@ export default function App() {
   return (
     <BrowserRouter>
       <div className="flex min-h-screen bg-gray-100">
-        <Sidebar overdueCount={overdueCount} onLogout={handleLogout} />
-        <main className="flex-1 p-8 overflow-y-auto">
+        <Sidebar
+          overdueCount={overdueCount}
+          onLogout={handleLogout}
+          mobileOpen={mobileNavOpen}
+          onMobileClose={() => setMobileNavOpen(false)}
+        />
+        <div className="flex-1 flex flex-col min-w-0">
+          {/* Mobile top bar */}
+          <div className="md:hidden flex items-center justify-between bg-gray-900 text-white px-4 py-3 sticky top-0 z-10">
+            <button
+              onClick={() => setMobileNavOpen(true)}
+              className="text-gray-300 hover:text-white p-1"
+            >
+              <span className="text-2xl leading-none">☰</span>
+            </button>
+            <p className="text-sm font-bold">Maintenance Dashboard</p>
+            {overdueCount > 0 && (
+              <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                {overdueCount} overdue
+              </span>
+            )}
+          </div>
+        <main className="flex-1 p-4 md:p-8 overflow-y-auto">
 
           {error && (
             <div className="mb-5 flex items-start gap-3 bg-orange-50 border border-orange-200 rounded-xl px-5 py-3 text-sm text-orange-800">
@@ -86,6 +108,7 @@ export default function App() {
             </Routes>
           )}
         </main>
+        </div>
       </div>
 
       <SyncStatus status={syncStatus} />
