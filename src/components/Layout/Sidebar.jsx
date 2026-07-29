@@ -7,6 +7,7 @@ const links = [
   { to: '/billing',       label: 'Cost & Billing',icon: '💳' },
   { to: '/units',         label: 'Units',         icon: '🏠' },
   { to: '/staff',         label: 'Staff',         icon: '👥' },
+  { to: '/ac-log',        label: 'AC Log',        icon: '❄' },
   { to: '/report',        label: 'Report Issue',  icon: '+' },
 ];
 

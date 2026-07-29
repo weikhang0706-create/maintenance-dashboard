@@ -1,7 +1,15 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { Button } from '../UI/Button';
 import { CATEGORIES, PRIORITIES, STAFF_LIST } from '../../utils/constants';
-import { suggestDueDate } from '../../utils/dateUtils';
+import { suggestDueDate, displayDate } from '../../utils/dateUtils';
+
+const AC_WARN_DAYS = 90;
+
+function daysSince(iso) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return Math.round((today - new Date(iso)) / 86400000);
+}
 
 const EMPTY = {
   UnitID: '',
@@ -71,6 +79,22 @@ export function ReportIssueForm({ onSubmit, onCancel, units = [], staffNames = S
       i.Status !== 'Cancelled'
     );
   }, [issues, form.UnitID]);
+
+  // Warning: AC serviced within 90 days for this unit+room
+  const recentAcService = useMemo(() => {
+    if (form.Category !== 'Air Con' || !form.UnitID) return null;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const cutoffISO = new Date(today.getTime() - AC_WARN_DAYS * 86400000).toISOString().slice(0, 10);
+    const matches = issues.filter((i) => {
+      if (i.Category !== 'Air Con' || i.Status !== 'Done' || !i.DateCompleted) return false;
+      if (i.UnitID !== form.UnitID) return false;
+      if (form.RoomNumber && i.RoomNumber && i.RoomNumber !== form.RoomNumber) return false;
+      return i.DateCompleted >= cutoffISO;
+    });
+    if (!matches.length) return null;
+    return matches.sort((a, b) => (b.DateCompleted > a.DateCompleted ? 1 : -1))[0];
+  }, [issues, form.Category, form.UnitID, form.RoomNumber]);
 
   const roomOptions = useMemo(() => {
     if (!selectedUnit || selectedUnit.HasRooms !== 'Yes' || !selectedUnit.Rooms) return [];
@@ -277,6 +301,23 @@ export function ReportIssueForm({ onSubmit, onCancel, units = [], staffNames = S
             </select>
           </FormField>
         </div>
+
+        {/* AC recent service warning */}
+        {recentAcService && (
+          <div className="mt-4 bg-orange-50 border border-orange-300 rounded-xl px-4 py-3">
+            <p className="text-sm font-semibold text-orange-800">
+              ⚠ Air Con recently serviced — {daysSince(recentAcService.DateCompleted)} day{daysSince(recentAcService.DateCompleted) === 1 ? '' : 's'} ago
+            </p>
+            <p className="text-xs text-orange-700 mt-1">
+              This unit{form.RoomNumber ? ` (${form.RoomNumber})` : ''} had Air Con service on{' '}
+              <span className="font-semibold">{displayDate(recentAcService.DateCompleted)}</span>
+              {recentAcService.AssignedTo ? ` by ${recentAcService.AssignedTo}` : ''}.
+            </p>
+            <p className="text-xs text-orange-600 mt-1">
+              Check the AC Log to see if this is a repeat issue before submitting.
+            </p>
+          </div>
+        )}
 
         <div className="mt-4">
           <FormField label="Description *" error={errors.Description}>

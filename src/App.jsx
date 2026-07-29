@@ -9,6 +9,7 @@ import { PropertyViewPage } from './pages/PropertyViewPage';
 import { BillingPage } from './pages/BillingPage';
 import { UnitsPage } from './pages/UnitsPage';
 import { StaffPage } from './pages/StaffPage';
+import { AcServicePage } from './pages/AcServicePage';
 import { LoginPage } from './pages/LoginPage';
 import { useIssues } from './hooks/useIssues';
 import { useUnits } from './hooks/useUnits';
@@ -104,6 +105,7 @@ export default function App() {
               <Route path="/billing"       element={<BillingPage      issues={issues} onUpdate={updateIssue} units={units} />} />
               <Route path="/units"         element={<UnitsPage        units={units}   onAddUnit={addUnit} onUpdateUnit={handleUpdateUnit} />} />
               <Route path="/staff"         element={<StaffPage        staff={staff}   onAddStaff={addStaff} onUpdateStaff={updateStaff} onDeleteStaff={deleteStaff} issues={issues} />} />
+              <Route path="/ac-log"         element={<AcServicePage    issues={issues} />} />
               <Route path="/report"        element={<ReportPage       onAddIssue={addIssue} units={units} staffNames={activeStaffNames} issues={issues} />} />
             </Routes>
           )}
