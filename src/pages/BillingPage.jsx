@@ -31,6 +31,7 @@ export function BillingPage({ issues, onUpdate, units = [] }) {
   const [completedTo, setCompletedTo] = useState('');
   const [selected, setSelected] = useState(new Set());
   const [billAmounts, setBillAmounts] = useState({});
+  const [costAmounts, setCostAmounts] = useState({});
   const [showInvoice, setShowInvoice] = useState(false);
 
   // Only Done issues are billable
@@ -53,7 +54,7 @@ export function BillingPage({ issues, onUpdate, units = [] }) {
   const summary = useMemo(() => {
     const unbilledCost = billable
       .filter((i) => i.InvoiceStatus === 'Unbilled')
-      .reduce((s, i) => s + (parseFloat(i.BillAmount || i.Cost || 0)), 0);
+      .reduce((s, i) => s + (parseFloat(i.BillAmount || costAmounts[i.IssueID] || i.Cost || 0)), 0);
     const invoiced = billable
       .filter((i) => i.InvoiceStatus === 'Invoiced')
       .reduce((s, i) => s + (parseFloat(i.BillAmount || 0)), 0);
@@ -61,7 +62,7 @@ export function BillingPage({ issues, onUpdate, units = [] }) {
       .filter((i) => i.InvoiceStatus === 'Paid')
       .reduce((s, i) => s + (parseFloat(i.BillAmount || 0)), 0);
     return { unbilledCost, invoiced, paid };
-  }, [billable]);
+  }, [billable, costAmounts]);
 
   const toggleSelect = (id) => {
     setSelected((prev) => {
@@ -83,13 +84,18 @@ export function BillingPage({ issues, onUpdate, units = [] }) {
     setBillAmounts((prev) => ({ ...prev, [issueID]: val }));
   };
 
+  const handleCostChange = (issueID, val) => {
+    setCostAmounts((prev) => ({ ...prev, [issueID]: val }));
+  };
+
+  const getCost = (issue) =>
+    costAmounts[issue.IssueID] !== undefined ? costAmounts[issue.IssueID] : (issue.Cost || '');
+
   const getBillAmount = (issue) =>
-    billAmounts[issue.IssueID] !== undefined
-      ? billAmounts[issue.IssueID]
-      : issue.BillAmount;
+    billAmounts[issue.IssueID] !== undefined ? billAmounts[issue.IssueID] : issue.BillAmount;
 
   const getMarkup = (issue) => {
-    const cost = parseFloat(issue.Cost || 0);
+    const cost = parseFloat(getCost(issue) || 0);
     const bill = parseFloat(getBillAmount(issue) || 0);
     if (!cost || !bill) return null;
     return (((bill - cost) / cost) * 100).toFixed(1);
@@ -110,9 +116,9 @@ export function BillingPage({ issues, onUpdate, units = [] }) {
   const invoiceNumber = useMemo(() => generateInvoiceNumber(issues), [issues]);
 
   const handleSaveBillAmounts = () => {
-    Object.entries(billAmounts).forEach(([id, amount]) => {
-      onUpdate(id, { BillAmount: amount });
-    });
+    Object.entries(costAmounts).forEach(([id, cost]) => onUpdate(id, { Cost: cost }));
+    Object.entries(billAmounts).forEach(([id, amount]) => onUpdate(id, { BillAmount: amount }));
+    setCostAmounts({});
     setBillAmounts({});
   };
 
@@ -140,7 +146,7 @@ export function BillingPage({ issues, onUpdate, units = [] }) {
   };
 
   const unbilledSelectableCount = filtered.filter((i) => i.InvoiceStatus === 'Unbilled').length;
-  const hasPendingAmounts = Object.keys(billAmounts).length > 0;
+  const hasPendingAmounts = Object.keys(billAmounts).length > 0 || Object.keys(costAmounts).length > 0;
 
   return (
     <div>
@@ -312,8 +318,19 @@ export function BillingPage({ issues, onUpdate, units = [] }) {
                     <ExpandableCell value={getRoom(issue)} />
                     <td className="px-4 py-3 text-gray-600">{issue.Category}</td>
                     <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{displayDate(issue.DateCompleted)}</td>
-                    <td className="px-4 py-3 text-right text-gray-600">
-                      {issue.Cost ? `RM ${parseFloat(issue.Cost).toFixed(2)}` : '—'}
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <span className="text-gray-400 text-xs">RM</span>
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={getCost(issue)}
+                          onChange={(e) => handleCostChange(issue.IssueID, e.target.value)}
+                          placeholder="0.00"
+                          className="w-24 text-sm text-right border border-gray-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-right">
                       {selectable ? (
