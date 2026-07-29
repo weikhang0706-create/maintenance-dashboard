@@ -3,8 +3,9 @@ import { Header } from '../components/Layout/Header';
 import { Button } from '../components/UI/Button';
 import { StaffModal } from '../components/Staff/StaffModal';
 import { STAFF_ROLES } from '../utils/constants';
+import { isOverdue } from '../utils/dateUtils';
 
-export function StaffPage({ staff, onAddStaff, onUpdateStaff, onDeleteStaff }) {
+export function StaffPage({ staff, onAddStaff, onUpdateStaff, onDeleteStaff, issues = [] }) {
   const [filterRole, setFilterRole]     = useState('');
   const [filterStatus, setFilterStatus] = useState('Active');
   const [modalOpen, setModalOpen]       = useState(false);
@@ -25,6 +26,23 @@ export function StaffPage({ staff, onAddStaff, onUpdateStaff, onDeleteStaff }) {
     active:   staff.filter((s) => s.Status === 'Active').length,
     inactive: staff.filter((s) => s.Status === 'Inactive').length,
   }), [staff]);
+
+  const workload = useMemo(() => {
+    const activeIssues = issues.filter((i) => i.Status !== 'Done' && i.Status !== 'Cancelled');
+    return staff
+      .filter((s) => s.Status === 'Active')
+      .map((s) => {
+        const mine = activeIssues.filter((i) => i.AssignedTo === s.Name);
+        return {
+          ...s,
+          open:       mine.filter((i) => i.Status === 'Open').length,
+          inProgress: mine.filter((i) => i.Status === 'In Progress' || i.Status === 'Assigned').length,
+          overdue:    mine.filter(isOverdue).length,
+          total:      mine.length,
+        };
+      })
+      .sort((a, b) => b.total - a.total);
+  }, [staff, issues]);
 
   const openAdd  = () => { setEditing(null); setModalOpen(true); };
   const openEdit = (s) => { setEditing(s);   setModalOpen(true); };
@@ -67,6 +85,41 @@ export function StaffPage({ staff, onAddStaff, onUpdateStaff, onDeleteStaff }) {
           </div>
         ))}
       </div>
+
+      {/* Workload view */}
+      {workload.length > 0 && (
+        <div className="mb-6">
+          <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">Staff Workload — Active Issues</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+            {workload.map((s) => {
+              const load = s.total === 0 ? 'none' : s.total <= 2 ? 'light' : s.total <= 5 ? 'medium' : 'heavy';
+              const loadStyle = {
+                none:   'border-gray-200 bg-white',
+                light:  'border-green-200 bg-green-50',
+                medium: 'border-yellow-200 bg-yellow-50',
+                heavy:  'border-red-200 bg-red-50',
+              }[load];
+              const totalColor = {
+                none: 'text-gray-400', light: 'text-green-700', medium: 'text-yellow-700', heavy: 'text-red-700',
+              }[load];
+              return (
+                <div key={s.StaffID} className={`rounded-xl border-2 ${loadStyle} p-4`}>
+                  <p className="font-semibold text-gray-900 text-sm truncate">{s.Name}</p>
+                  <p className="text-xs text-gray-400 mb-3">{s.Role}</p>
+                  <p className={`text-3xl font-bold ${totalColor}`}>{s.total}</p>
+                  <p className="text-xs text-gray-500 mb-2">active issues</p>
+                  <div className="space-y-0.5 text-xs text-gray-500">
+                    {s.open > 0       && <p>• {s.open} open</p>}
+                    {s.inProgress > 0 && <p>• {s.inProgress} in progress</p>}
+                    {s.overdue > 0    && <p className="text-red-600 font-semibold">⚠ {s.overdue} overdue</p>}
+                    {s.total === 0    && <p className="text-green-600">✓ All clear</p>}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-4">

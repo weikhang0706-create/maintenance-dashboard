@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { Header } from '../components/Layout/Header';
 import { ReportIssueForm } from '../components/Forms/ReportIssueForm';
 
-export function ReportPage({ onAddIssue, units, staffNames }) {
+export function ReportPage({ onAddIssue, units, staffNames, issues = [] }) {
   const navigate = useNavigate();
 
   const handleSubmit = (formData) => {
@@ -20,6 +20,7 @@ export function ReportPage({ onAddIssue, units, staffNames }) {
         onCancel={() => navigate('/issues')}
         units={units}
         staffNames={staffNames}
+        issues={issues}
       />
     </div>
   );

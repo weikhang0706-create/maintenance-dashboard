@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { downloadCSV } from '../utils/exportUtils';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { Header } from '../components/Layout/Header';
 import { SummaryCard } from '../components/Dashboard/SummaryCard';
@@ -53,6 +54,67 @@ export function DashboardPage({ issues, onUpdate, onDelete, staffNames }) {
     return { open, inProgress, overdue, completedThisMonth, costThisMonth, pendingBilling };
   }, [tabIssues, ym]);
 
+  const handleMonthlyReport = () => {
+    const monthLabel = new Date().toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+    const done = tabIssues.filter((i) => i.Status === 'Done' && inMonth(i.DateCompleted, ym));
+    const active = tabIssues.filter((i) => i.Status !== 'Done' && i.Status !== 'Cancelled');
+    const totalCost = done.reduce((s, i) => s + (parseFloat(i.Cost) || 0), 0);
+
+    // By category
+    const byCat = {};
+    done.forEach((i) => { const c = i.Category || 'Other'; byCat[c] = (byCat[c] || { count: 0, cost: 0 }); byCat[c].count++; byCat[c].cost += parseFloat(i.Cost) || 0; });
+    const catRows = Object.entries(byCat).sort((a, b) => b[1].count - a[1].count)
+      .map(([cat, d]) => `<tr><td>${cat}</td><td style="text-align:center">${d.count}</td><td style="text-align:right">RM ${d.cost.toFixed(2)}</td></tr>`).join('');
+
+    // By staff
+    const byStaff = {};
+    done.forEach((i) => { const n = i.AssignedTo || 'Unassigned'; byStaff[n] = (byStaff[n] || { count: 0, cost: 0 }); byStaff[n].count++; byStaff[n].cost += parseFloat(i.Cost) || 0; });
+    const staffRows = Object.entries(byStaff).sort((a, b) => b[1].count - a[1].count)
+      .map(([name, d]) => `<tr><td>${name}</td><td style="text-align:center">${d.count}</td><td style="text-align:right">RM ${d.cost.toFixed(2)}</td></tr>`).join('');
+
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Monthly Report — ${monthLabel}</title>
+    <style>
+      body { font-family: Arial, sans-serif; font-size: 13px; color: #111; padding: 40px; }
+      h1 { font-size: 22px; color: #1e3a5f; margin-bottom: 4px; }
+      h2 { font-size: 13px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; color: #888; margin: 28px 0 10px; border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; }
+      .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px; }
+      .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 8px; }
+      .card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; text-align: center; }
+      .card-val { font-size: 28px; font-weight: bold; color: #1e3a5f; }
+      .card-lbl { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+      table { width: 100%; border-collapse: collapse; }
+      th { background: #1e3a5f; color: #fff; padding: 8px 12px; text-align: left; font-size: 11px; text-transform: uppercase; }
+      td { padding: 8px 12px; border-bottom: 1px solid #f1f5f9; }
+      tr:nth-child(even) td { background: #f8fafc; }
+      .footer { margin-top: 40px; text-align: center; font-size: 11px; color: #aaa; border-top: 1px solid #e5e7eb; padding-top: 16px; }
+      @page { margin: 0; } @media print { body { padding: 20px; } }
+    </style></head><body>
+    <div class="header">
+      <div><h1>Monthly Maintenance Report</h1><p style="color:#666;margin:0">${monthLabel} — ${activeTab}</p></div>
+      <div style="text-align:right;font-size:12px;color:#888">CK Group<br>Generated ${new Date().toLocaleDateString('en-GB')}</div>
+    </div>
+    <div class="cards">
+      <div class="card"><div class="card-val">${tabIssues.filter(i=>i.Status==='Open').length}</div><div class="card-lbl">Open</div></div>
+      <div class="card"><div class="card-val">${active.length}</div><div class="card-lbl">Active</div></div>
+      <div class="card"><div class="card-val" style="color:#16a34a">${done.length}</div><div class="card-lbl">Completed</div></div>
+      <div class="card"><div class="card-val" style="color:#1e3a5f">RM ${totalCost.toFixed(0)}</div><div class="card-lbl">Total Cost</div></div>
+    </div>
+    <h2>Completed Issues by Category</h2>
+    <table><thead><tr><th>Category</th><th style="text-align:center">Issues</th><th style="text-align:right">Cost (RM)</th></tr></thead>
+    <tbody>${catRows || '<tr><td colspan="3" style="text-align:center;color:#aaa">No completed issues this month.</td></tr>'}</tbody></table>
+    <h2>Staff Performance</h2>
+    <table><thead><tr><th>Staff Member</th><th style="text-align:center">Completed</th><th style="text-align:right">Cost (RM)</th></tr></thead>
+    <tbody>${staffRows || '<tr><td colspan="3" style="text-align:center;color:#aaa">No data.</td></tr>'}</tbody></table>
+    <div class="footer">CK Group Maintenance Dashboard — Confidential</div>
+    </body></html>`;
+
+    const win = window.open('', '_blank', 'width=900,height=700');
+    win.document.write(html);
+    win.document.close();
+    win.focus();
+    setTimeout(() => win.print(), 400);
+  };
+
   const recentOpen = useMemo(() =>
     tabIssues
       .filter((i) => i.Status !== 'Done' && i.Status !== 'Cancelled')
@@ -104,8 +166,9 @@ export function DashboardPage({ issues, onUpdate, onDelete, staffNames }) {
         </div>
       </div>
 
-      {/* Property type tabs */}
-      <div className="flex gap-1 mb-6 bg-gray-100 rounded-xl p-1 w-fit">
+      {/* Property type tabs + report button */}
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+      <div className="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit">
         {TABS.map((tab) => (
           <button
             key={tab}
@@ -117,6 +180,13 @@ export function DashboardPage({ issues, onUpdate, onDelete, staffNames }) {
             {tab}
           </button>
         ))}
+      </div>
+      <button
+        onClick={handleMonthlyReport}
+        className="text-sm font-medium bg-white border border-gray-300 hover:border-gray-400 text-gray-700 px-4 py-2 rounded-xl shadow-sm transition-colors"
+      >
+        📄 Monthly Report
+      </button>
       </div>
 
       <OverdueBanner count={stats.overdue} />

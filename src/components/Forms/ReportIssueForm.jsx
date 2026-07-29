@@ -21,7 +21,7 @@ const EMPTY = {
 
 const REQUIRED = ['UnitID', 'Category', 'Description', 'Priority'];
 
-export function ReportIssueForm({ onSubmit, onCancel, units = [], staffNames = STAFF_LIST }) {
+export function ReportIssueForm({ onSubmit, onCancel, units = [], staffNames = STAFF_LIST, issues = [] }) {
   const [form, setForm] = useState(EMPTY);
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
@@ -62,6 +62,15 @@ export function ReportIssueForm({ onSubmit, onCancel, units = [], staffNames = S
     units.find((u) => u.UnitID === form.UnitID),
     [units, form.UnitID]
   );
+
+  const duplicateIssues = useMemo(() => {
+    if (!form.UnitID) return [];
+    return issues.filter((i) =>
+      i.UnitID === form.UnitID &&
+      i.Status !== 'Done' &&
+      i.Status !== 'Cancelled'
+    );
+  }, [issues, form.UnitID]);
 
   const roomOptions = useMemo(() => {
     if (!selectedUnit || selectedUnit.HasRooms !== 'Yes' || !selectedUnit.Rooms) return [];
@@ -200,6 +209,25 @@ export function ReportIssueForm({ onSubmit, onCancel, units = [], staffNames = S
             <InfoChip label="Block" value={selectedUnit.Condo} />
             <InfoChip label="Unit"  value={selectedUnit.UnitNumber} />
             {selectedUnit.Floor && <InfoChip label="Floor" value={selectedUnit.Floor} />}
+          </div>
+        )}
+
+        {/* Duplicate warning */}
+        {duplicateIssues.length > 0 && (
+          <div className="mt-3 bg-yellow-50 border border-yellow-300 rounded-xl px-4 py-3">
+            <p className="text-sm font-semibold text-yellow-800 mb-2">
+              ⚠ {duplicateIssues.length} open {duplicateIssues.length === 1 ? 'issue' : 'issues'} already exist for this unit
+            </p>
+            <ul className="space-y-1">
+              {duplicateIssues.map((i) => (
+                <li key={i.IssueID} className="text-xs text-yellow-700 flex items-start gap-2">
+                  <span className="font-mono shrink-0">{i.IssueID}</span>
+                  <span className="text-yellow-600">[{i.Status}]</span>
+                  <span className="truncate">{i.Description}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="text-xs text-yellow-600 mt-2">You can still submit — this is just a reminder to check for duplicates.</p>
           </div>
         )}
 

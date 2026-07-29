@@ -103,8 +103,8 @@ export default function App() {
               <Route path="/issues"        element={<IssuesPage       issues={issues} onUpdate={updateIssue} onDelete={deleteIssue} staffNames={activeStaffNames} />} />
               <Route path="/billing"       element={<BillingPage      issues={issues} onUpdate={updateIssue} units={units} />} />
               <Route path="/units"         element={<UnitsPage        units={units}   onAddUnit={addUnit} onUpdateUnit={handleUpdateUnit} />} />
-              <Route path="/staff"         element={<StaffPage        staff={staff}   onAddStaff={addStaff} onUpdateStaff={updateStaff} onDeleteStaff={deleteStaff} />} />
-              <Route path="/report"        element={<ReportPage       onAddIssue={addIssue} units={units} staffNames={activeStaffNames} />} />
+              <Route path="/staff"         element={<StaffPage        staff={staff}   onAddStaff={addStaff} onUpdateStaff={updateStaff} onDeleteStaff={deleteStaff} issues={issues} />} />
+              <Route path="/report"        element={<ReportPage       onAddIssue={addIssue} units={units} staffNames={activeStaffNames} issues={issues} />} />
             </Routes>
           )}
         </main>
