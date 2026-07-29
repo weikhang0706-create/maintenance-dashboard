@@ -4,7 +4,10 @@ export function IssueFilters({ filters, onChange }) {
   const handle = (key) => (e) => onChange({ ...filters, [key]: e.target.value });
 
   const hasFilter = filters.propertyType || filters.status || filters.priority ||
-    filters.category || filters.location || filters.assignedTo;
+    filters.category || filters.location || filters.assignedTo ||
+    filters.completedFrom || filters.completedTo;
+
+  const showCompletedRange = filters.status === 'Done' || filters.completedFrom || filters.completedTo;
 
   return (
     <div className="flex flex-wrap gap-3 mb-4">
@@ -43,9 +46,29 @@ export function IssueFilters({ filters, onChange }) {
         className="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[180px]"
       />
 
+      {/* Completed date range — always visible when Done is selected, or when dates are set */}
+      {showCompletedRange && (
+        <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+          <span className="text-xs font-medium text-green-700 whitespace-nowrap">Completed</span>
+          <input
+            type="date"
+            value={filters.completedFrom}
+            onChange={handle('completedFrom')}
+            className="text-sm border border-green-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-green-400"
+          />
+          <span className="text-xs text-green-600">to</span>
+          <input
+            type="date"
+            value={filters.completedTo}
+            onChange={handle('completedTo')}
+            className="text-sm border border-green-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-green-400"
+          />
+        </div>
+      )}
+
       {hasFilter && (
         <button
-          onClick={() => onChange({ propertyType: '', assignedTo: '', status: '', priority: '', category: '', location: '' })}
+          onClick={() => onChange({ propertyType: '', assignedTo: '', status: '', priority: '', category: '', location: '', completedFrom: '', completedTo: '' })}
           className="text-sm text-gray-500 hover:text-gray-700 underline"
         >
           Clear all

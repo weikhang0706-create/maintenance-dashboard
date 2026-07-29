@@ -18,6 +18,8 @@ export function IssuesPage({ issues, onUpdate, onDelete }) {
     priority: '',
     category: '',
     location: '',
+    completedFrom: '',
+    completedTo: '',
   });
 
   useEffect(() => {
@@ -39,6 +41,8 @@ export function IssuesPage({ issues, onUpdate, onDelete }) {
         const loc = `${issue.Location || ''} ${issue.Condo || ''} ${issue.UnitNumber || ''} ${issue.RoomNumber || ''}`.toLowerCase();
         if (!loc.includes(filters.location.toLowerCase())) return false;
       }
+      if (filters.completedFrom && issue.DateCompleted < filters.completedFrom) return false;
+      if (filters.completedTo   && issue.DateCompleted > filters.completedTo)   return false;
       return true;
     });
   }, [issues, filters]);
