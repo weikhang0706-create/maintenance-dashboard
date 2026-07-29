@@ -7,7 +7,7 @@ import { IssueDetailModal } from '../components/Issues/IssueDetailModal';
 import { Button } from '../components/UI/Button';
 import { isOverdue } from '../utils/dateUtils';
 
-export function IssuesPage({ issues, onUpdate, onDelete }) {
+export function IssuesPage({ issues, onUpdate, onDelete, staffNames }) {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [selected, setSelected] = useState(null);
@@ -63,6 +63,7 @@ export function IssuesPage({ issues, onUpdate, onDelete }) {
       <IssueDetailModal
         issue={selected}
         onClose={() => setSelected(null)}
+        staffNames={staffNames}
         onUpdate={(id, changes) => {
           onUpdate(id, changes);
           setSelected((prev) => ({ ...prev, ...changes }));

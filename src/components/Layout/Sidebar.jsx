@@ -6,6 +6,7 @@ const links = [
   { to: '/issues', label: 'All Issues', icon: '☰' },
   { to: '/billing', label: 'Cost & Billing', icon: '💳' },
   { to: '/units', label: 'Units', icon: '🏠' },
+  { to: '/staff', label: 'Staff', icon: '👥' },
   { to: '/report', label: 'Report Issue', icon: '+' },
 ];
 

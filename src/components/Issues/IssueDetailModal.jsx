@@ -6,14 +6,17 @@ import {
   STATUS_COLORS, PRIORITY_COLORS, PROPERTY_TYPE_COLORS,
   STATUSES, STAFF_LIST, CATEGORIES, PRIORITIES, PROPERTY_TYPES,
 } from '../../utils/constants';
+
 import { displayDate, todayISO } from '../../utils/dateUtils';
 
-export function IssueDetailModal({ issue, onClose, onUpdate }) {
+export function IssueDetailModal({ issue, onClose, onUpdate, onDelete, staffNames = [] }) {
   const [editing, setEditing] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [form, setForm] = useState({});
 
   useEffect(() => {
     if (issue) {
+      setConfirmDelete(false);
       setForm({
         PropertyType:  issue.PropertyType  || '',
         Condo:         issue.Condo         || '',
@@ -141,7 +144,7 @@ export function IssueDetailModal({ issue, onClose, onUpdate }) {
               <Field label="Assigned To">
                 <select value={form.AssignedTo} onChange={field('AssignedTo')} className={selectCls}>
                   <option value="">— Unassigned —</option>
-                  {STAFF_LIST.map((s) => <option key={s}>{s}</option>)}
+                  {(staffNames.length > 0 ? staffNames : STAFF_LIST).map((s) => <option key={s}>{s}</option>)}
                 </select>
               </Field>
               <Field label="Due Date">
@@ -238,7 +241,31 @@ export function IssueDetailModal({ issue, onClose, onUpdate }) {
               </div>
             )}
 
-            <div className="flex justify-end">
+            <div className="flex items-center justify-between pt-1">
+              {confirmDelete ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-red-600 font-semibold">Delete this issue permanently?</span>
+                  <button
+                    onClick={() => onDelete(issue.IssueID)}
+                    className="text-xs bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg font-semibold"
+                  >
+                    Yes, Delete
+                  </button>
+                  <button
+                    onClick={() => setConfirmDelete(false)}
+                    className="text-xs text-gray-500 hover:text-gray-700 px-2 py-1"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setConfirmDelete(true)}
+                  className="text-xs text-red-400 hover:text-red-600 underline"
+                >
+                  Delete Issue
+                </button>
+              )}
               <Button onClick={() => setEditing(true)}>Edit Issue</Button>
             </div>
           </div>
