@@ -5,7 +5,7 @@ export const PROPERTY_TYPE_COLORS = {
   'Co-living': 'bg-teal-100 text-teal-700',
 };
 
-export const CATEGORIES = ['Plumbing', 'Electrical', 'HVAC', 'Appliance', 'Structural', 'Other'];
+export const CATEGORIES = ['Plumbing', 'Electrical', 'Air Con', 'Appliance', 'Structural', 'Painting', 'Leaking', 'Other'];
 
 export const PRIORITIES = ['Low', 'Medium', 'High', 'Urgent'];
 
