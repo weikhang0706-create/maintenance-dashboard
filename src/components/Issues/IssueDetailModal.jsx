@@ -9,7 +9,15 @@ import {
 
 import { displayDate, todayISO } from '../../utils/dateUtils';
 
-export function IssueDetailModal({ issue, onClose, onUpdate, onDelete, staffNames = [] }) {
+function formatWANumber(phone) {
+  if (!phone) return null;
+  const digits = phone.replace(/\D/g, '');
+  if (digits.startsWith('60')) return digits;
+  if (digits.startsWith('0')) return '60' + digits.slice(1);
+  return '60' + digits;
+}
+
+export function IssueDetailModal({ issue, onClose, onUpdate, onDelete, staffNames = [], staff = [] }) {
   const [editing, setEditing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [form, setForm] = useState({});
@@ -241,7 +249,7 @@ export function IssueDetailModal({ issue, onClose, onUpdate, onDelete, staffName
               </div>
             )}
 
-            <div className="flex items-center justify-between pt-1">
+            <div className="flex items-center justify-between pt-1 flex-wrap gap-2">
               {confirmDelete ? (
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-red-600 font-semibold">Delete this issue permanently?</span>
@@ -266,7 +274,35 @@ export function IssueDetailModal({ issue, onClose, onUpdate, onDelete, staffName
                   Delete Issue
                 </button>
               )}
-              <Button onClick={() => setEditing(true)}>Edit Issue</Button>
+              <div className="flex items-center gap-2">
+                {(() => {
+                  if (!issue.AssignedTo) return null;
+                  const assignedStaff = staff.find((s) => s.Name === issue.AssignedTo);
+                  const waNum = formatWANumber(assignedStaff?.Phone);
+                  if (!waNum) return null;
+                  const msg = encodeURIComponent(
+                    `Hi ${issue.AssignedTo}, you have been assigned a maintenance issue.\n\n` +
+                    `📋 Issue: ${issue.IssueID}\n` +
+                    `📍 Location: ${issue.Location}\n` +
+                    `🔧 Category: ${issue.Category}\n` +
+                    `⚠ Priority: ${issue.Priority}\n` +
+                    `📝 Description: ${issue.Description}\n` +
+                    (issue.DueDate ? `📅 Due Date: ${issue.DueDate}\n` : '') +
+                    `\nPlease attend to this issue promptly. Thank you.`
+                  );
+                  return (
+                    <a
+                      href={`https://wa.me/${waNum}?text=${msg}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded-lg transition-colors"
+                    >
+                      <span>💬</span> WhatsApp {issue.AssignedTo.split(' ')[0]}
+                    </a>
+                  );
+                })()}
+                <Button onClick={() => setEditing(true)}>Edit Issue</Button>
+              </div>
             </div>
           </div>
         )}

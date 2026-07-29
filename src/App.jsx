@@ -98,9 +98,9 @@ export default function App() {
             </div>
           ) : (
             <Routes>
-              <Route path="/"              element={<DashboardPage    issues={issues} onUpdate={updateIssue} onDelete={deleteIssue} staffNames={activeStaffNames} />} />
-              <Route path="/property-view" element={<PropertyViewPage issues={issues} onUpdate={updateIssue} onDelete={deleteIssue} staffNames={activeStaffNames} />} />
-              <Route path="/issues"        element={<IssuesPage       issues={issues} onUpdate={updateIssue} onDelete={deleteIssue} staffNames={activeStaffNames} />} />
+              <Route path="/"              element={<DashboardPage    issues={issues} onUpdate={updateIssue} onDelete={deleteIssue} staffNames={activeStaffNames} staff={staff} />} />
+              <Route path="/property-view" element={<PropertyViewPage issues={issues} onUpdate={updateIssue} onDelete={deleteIssue} staffNames={activeStaffNames} staff={staff} />} />
+              <Route path="/issues"        element={<IssuesPage       issues={issues} onUpdate={updateIssue} onDelete={deleteIssue} staffNames={activeStaffNames} staff={staff} />} />
               <Route path="/billing"       element={<BillingPage      issues={issues} onUpdate={updateIssue} units={units} />} />
               <Route path="/units"         element={<UnitsPage        units={units}   onAddUnit={addUnit} onUpdateUnit={handleUpdateUnit} />} />
               <Route path="/staff"         element={<StaffPage        staff={staff}   onAddStaff={addStaff} onUpdateStaff={updateStaff} onDeleteStaff={deleteStaff} issues={issues} />} />

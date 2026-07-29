@@ -25,7 +25,7 @@ const ISSUE_CSV_COLS = [
   { label: 'Notes',          key: 'Notes' },
 ];
 
-export function IssuesPage({ issues, onUpdate, onDelete, staffNames }) {
+export function IssuesPage({ issues, onUpdate, onDelete, staffNames, staff = [] }) {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [selected, setSelected] = useState(null);
@@ -87,6 +87,7 @@ export function IssuesPage({ issues, onUpdate, onDelete, staffNames }) {
         issue={selected}
         onClose={() => setSelected(null)}
         staffNames={staffNames}
+        staff={staff}
         onUpdate={(id, changes) => {
           onUpdate(id, changes);
           setSelected((prev) => ({ ...prev, ...changes }));

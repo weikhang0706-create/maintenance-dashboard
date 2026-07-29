@@ -6,7 +6,7 @@ import { QuickDoneModal } from '../components/Issues/QuickDoneModal';
 import { STATUS_COLORS, PRIORITY_COLORS, PROPERTY_TYPES, PROPERTY_TYPE_COLORS } from '../utils/constants';
 import { displayDate, isOverdue, currentYearMonth, inMonth } from '../utils/dateUtils';
 
-export function PropertyViewPage({ issues, onUpdate, onDelete, staffNames }) {
+export function PropertyViewPage({ issues, onUpdate, onDelete, staffNames, staff = [] }) {
   const [selected, setSelected] = useState(null);
   const [quickDone, setQuickDone] = useState(null);
   const ym = currentYearMonth();
@@ -35,6 +35,7 @@ export function PropertyViewPage({ issues, onUpdate, onDelete, staffNames }) {
         issue={selected}
         onClose={() => setSelected(null)}
         staffNames={staffNames}
+        staff={staff}
         onUpdate={(id, changes) => {
           onUpdate(id, changes);
           setSelected((prev) => ({ ...prev, ...changes }));

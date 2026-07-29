@@ -29,7 +29,7 @@ const PRIORITY_COLORS = {
 
 const CATEGORY_COLOR = '#6366f1';
 
-export function DashboardPage({ issues, onUpdate, onDelete, staffNames }) {
+export function DashboardPage({ issues, onUpdate, onDelete, staffNames, staff = [] }) {
   const [selected, setSelected] = useState(null);
   const [activeTab, setActiveTab] = useState('All');
   const navigate = useNavigate();
@@ -319,6 +319,7 @@ export function DashboardPage({ issues, onUpdate, onDelete, staffNames }) {
         issue={selected}
         onClose={() => setSelected(null)}
         staffNames={staffNames}
+        staff={staff}
         onUpdate={(id, changes) => {
           onUpdate(id, changes);
           setSelected((prev) => ({ ...prev, ...changes }));
