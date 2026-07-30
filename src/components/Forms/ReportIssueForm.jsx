@@ -126,6 +126,10 @@ export function ReportIssueForm({ onSubmit, onCancel, units = [], staffNames = S
       if (key === 'Category' && val !== 'Other') {
         next.OtherCategory = '';
       }
+      if (key === 'Category' && (val === 'Air Con' || val === 'Leaking')) {
+        next.Priority = 'Urgent';
+        if (!next.DueDate) next.DueDate = suggestDueDate('Urgent');
+      }
       return next;
     });
     if (errors[key]) setErrors((prev) => ({ ...prev, [key]: '' }));
