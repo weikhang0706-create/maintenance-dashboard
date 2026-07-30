@@ -4,6 +4,7 @@ import { Button } from '../components/UI/Button';
 import { StaffModal } from '../components/Staff/StaffModal';
 import { STAFF_ROLES } from '../utils/constants';
 import { isOverdue } from '../utils/dateUtils';
+import { formatWANumber, buildJobListWAMessage } from '../utils/issueUtils';
 
 export function StaffPage({ staff, onAddStaff, onUpdateStaff, onDeleteStaff, issues = [] }) {
   const [filterRole, setFilterRole]     = useState('');
@@ -102,18 +103,36 @@ export function StaffPage({ staff, onAddStaff, onUpdateStaff, onDeleteStaff, iss
               const totalColor = {
                 none: 'text-gray-400', light: 'text-green-700', medium: 'text-yellow-700', heavy: 'text-red-700',
               }[load];
+              const waNum = formatWANumber(s.Phone);
+              const openIssues = issues.filter((i) =>
+                i.AssignedTo === s.Name && i.Status !== 'Done' && i.Status !== 'Cancelled'
+              );
+              const handleWA = () => {
+                const msg = buildJobListWAMessage(s.Name, openIssues);
+                window.open(`https://wa.me/${waNum}?text=${encodeURIComponent(msg)}`, '_blank');
+              };
               return (
-                <div key={s.StaffID} className={`rounded-xl border-2 ${loadStyle} p-4`}>
+                <div key={s.StaffID} className={`rounded-xl border-2 ${loadStyle} p-4 flex flex-col`}>
                   <p className="font-semibold text-gray-900 text-sm truncate">{s.Name}</p>
                   <p className="text-xs text-gray-400 mb-3">{s.Role}</p>
                   <p className={`text-3xl font-bold ${totalColor}`}>{s.total}</p>
                   <p className="text-xs text-gray-500 mb-2">active issues</p>
-                  <div className="space-y-0.5 text-xs text-gray-500">
+                  <div className="space-y-0.5 text-xs text-gray-500 flex-1">
                     {s.open > 0       && <p>• {s.open} open</p>}
                     {s.inProgress > 0 && <p>• {s.inProgress} in progress</p>}
                     {s.overdue > 0    && <p className="text-red-600 font-semibold">⚠ {s.overdue} overdue</p>}
                     {s.total === 0    && <p className="text-green-600">✓ All clear</p>}
                   </div>
+                  {waNum && openIssues.length > 0 ? (
+                    <button
+                      onClick={handleWA}
+                      className="mt-3 w-full text-xs font-semibold px-2 py-1.5 rounded-lg bg-green-500 text-white hover:bg-green-600 transition-colors"
+                    >
+                      📱 Send Job List
+                    </button>
+                  ) : !waNum ? (
+                    <p className="mt-3 text-[10px] text-gray-400 text-center">No phone saved</p>
+                  ) : null}
                 </div>
               );
             })}

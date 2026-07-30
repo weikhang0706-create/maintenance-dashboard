@@ -29,6 +29,42 @@ export function saveInvoiceWatermark(invoiceNumber) {
   if (n > current) localStorage.setItem('inv_seq_watermark', String(n));
 }
 
+// Normalises a phone number to WhatsApp-compatible format (e.g. 60111234567)
+export function formatWANumber(phone) {
+  if (!phone) return null;
+  const digits = phone.replace(/\D/g, '');
+  if (digits.startsWith('60')) return digits;
+  if (digits.startsWith('0')) return '6' + digits;
+  return null;
+}
+
+const PRIORITY_EMOJI = { Urgent: '🔴', High: '🟠', Medium: '🟡', Low: '⚪' };
+
+// Builds a WhatsApp job-list message for a staff member
+export function buildJobListWAMessage(staffName, openIssues) {
+  const today = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  const lines = [
+    `Hi ${staffName} 👋`,
+    ``,
+    `Here are your open jobs as of ${today}:`,
+    ``,
+  ];
+
+  openIssues.forEach((issue, i) => {
+    const emoji = PRIORITY_EMOJI[issue.Priority] || '⚪';
+    const parts = [issue.Condo, issue.UnitNumber ? `Unit ${issue.UnitNumber}` : '', issue.RoomNumber].filter(Boolean);
+    const location = parts.join(' — ');
+    lines.push(`${i + 1}. ${emoji} ${issue.Priority ? `${issue.Priority.toUpperCase()} | ` : ''}${issue.Category}`);
+    if (location) lines.push(`   📍 ${location}`);
+    if (issue.Description) lines.push(`   "${issue.Description}"`);
+    lines.push('');
+  });
+
+  lines.push(`${openIssues.length} job(s) pending. Please update status once done. Thank you! 🙏`);
+  lines.push(`— CK Group`);
+  return lines.join('\n');
+}
+
 // Sums cost by category for issues completed in the given "YYYY-MM" month
 export function costByCategory(issues, yearMonth) {
   const result = {};

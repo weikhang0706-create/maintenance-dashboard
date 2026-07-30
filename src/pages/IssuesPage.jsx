@@ -7,6 +7,7 @@ import { IssueDetailModal } from '../components/Issues/IssueDetailModal';
 import { Button } from '../components/UI/Button';
 import { isOverdue } from '../utils/dateUtils';
 import { downloadCSV } from '../utils/exportUtils';
+import { formatWANumber, buildJobListWAMessage } from '../utils/issueUtils';
 
 const ISSUE_CSV_COLS = [
   { label: 'Issue ID',       key: 'IssueID' },
@@ -46,6 +47,26 @@ export function IssuesPage({ issues, onUpdate, onDelete, staffNames, staff = [] 
     }
   }, [searchParams]);
 
+  // WhatsApp bulk send — only active when filtered to a specific staff member
+  const waStaff = useMemo(() => {
+    if (!filters.assignedTo || filters.assignedTo === '__unassigned__') return null;
+    return staff.find((s) => s.Name === filters.assignedTo) || null;
+  }, [filters.assignedTo, staff]);
+
+  const waOpenIssues = useMemo(() => {
+    if (!waStaff) return [];
+    return issues.filter((i) =>
+      i.AssignedTo === waStaff.Name && i.Status !== 'Done' && i.Status !== 'Cancelled'
+    );
+  }, [waStaff, issues]);
+
+  const handleWA = () => {
+    const waNum = formatWANumber(waStaff?.Phone);
+    if (!waNum) return;
+    const msg = buildJobListWAMessage(waStaff.Name, waOpenIssues);
+    window.open(`https://wa.me/${waNum}?text=${encodeURIComponent(msg)}`, '_blank');
+  };
+
   const filtered = useMemo(() => {
     return issues.filter((issue) => {
       if (filters.propertyType && issue.PropertyType !== filters.propertyType) return false;
@@ -72,7 +93,19 @@ export function IssuesPage({ issues, onUpdate, onDelete, staffNames, staff = [] 
           title="All Issues"
           subtitle={`${filtered.length} of ${issues.length} issues`}
         />
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap justify-end">
+          {waStaff && (
+            formatWANumber(waStaff.Phone) ? (
+              <button
+                onClick={handleWA}
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold bg-green-500 text-white hover:bg-green-600 transition-colors"
+              >
+                📱 WhatsApp {waStaff.Name.split(' ')[0]} ({waOpenIssues.length} open)
+              </button>
+            ) : (
+              <span className="text-xs text-gray-400 self-center">No phone saved for {waStaff.Name}</span>
+            )
+          )}
           <Button variant="secondary" onClick={() => downloadCSV(`issues-${new Date().toISOString().slice(0,10)}.csv`, filtered, ISSUE_CSV_COLS)}>
             ↓ Export CSV
           </Button>
