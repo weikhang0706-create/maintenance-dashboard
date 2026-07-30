@@ -50,7 +50,8 @@ export function buildJobListWAMessage(staffName, openIssues) {
     ``,
   ];
 
-  openIssues.forEach((issue, i) => {
+  const sorted = [...openIssues].sort((a, b) => (a.Condo ?? '').localeCompare(b.Condo ?? ''));
+  sorted.forEach((issue, i) => {
     const emoji = PRIORITY_EMOJI[issue.Priority] || '⚪';
     const parts = [issue.Condo, issue.UnitNumber ? `Unit ${issue.UnitNumber}` : '', issue.RoomNumber].filter(Boolean);
     const location = parts.join(' — ');
