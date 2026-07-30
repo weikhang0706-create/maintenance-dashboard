@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Badge } from '../UI/Badge';
 import { QuickDoneModal } from './QuickDoneModal';
 import { STATUS_COLORS, PRIORITY_COLORS, PROPERTY_TYPE_COLORS, STAFF_LIST } from '../../utils/constants';
-import { displayDate, isOverdue } from '../../utils/dateUtils';
+import { displayDate, isOverdue, daysSince } from '../../utils/dateUtils';
 
 const COLUMNS = [
   { key: 'DateReported', label: 'Reported' },
@@ -264,12 +264,14 @@ export function IssueTable({ issues, onSelectIssue, onUpdate, onDelete, staffNam
             {sorted.map((issue) => {
               const overdue = isOverdue(issue);
               const active = isActive(issue);
+              const daysOpen = active ? daysSince(issue.DateReported) : null;
+              const isStale = daysOpen !== null && daysOpen > 5;
               const rowClick = () => onSelectIssue(issue);
               const isSelected = selected.has(issue.IssueID);
               return (
                 <tr
                   key={issue.IssueID}
-                  className={`transition-colors ${isSelected ? 'bg-blue-50' : issue.Status === 'Done' ? 'opacity-60' : 'hover:bg-gray-50'}`}
+                  className={`transition-colors ${isSelected ? 'bg-blue-50' : isStale ? 'bg-orange-50 hover:bg-orange-100' : issue.Status === 'Done' ? 'opacity-60' : 'hover:bg-gray-50'}`}
                 >
                   <td className="px-4 py-3">
                     <input
@@ -280,8 +282,15 @@ export function IssueTable({ issues, onSelectIssue, onUpdate, onDelete, staffNam
                       className="rounded"
                     />
                   </td>
-                  <td className="px-4 py-3 text-gray-600 whitespace-nowrap cursor-pointer" onClick={rowClick}>
-                    {displayDate(issue.DateReported)}
+                  <td className="px-4 py-3 whitespace-nowrap cursor-pointer" onClick={rowClick}>
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-gray-600">{displayDate(issue.DateReported)}</span>
+                      {isStale && (
+                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-orange-600">
+                          ⚠ {daysOpen}d unsolved
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap cursor-pointer" onClick={rowClick}>
                     {issue.PropertyType && (

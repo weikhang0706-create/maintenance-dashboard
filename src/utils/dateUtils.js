@@ -36,6 +36,13 @@ export function suggestDueDate(priority) {
   return toISO(d);
 }
 
+// Returns how many days ago a YYYY-MM-DD date was (0 = today)
+export function daysSince(isoDate) {
+  if (!isoDate) return null;
+  const diff = parseISO(todayISO()) - parseISO(isoDate);
+  return Math.floor(diff / 86400000);
+}
+
 // Returns true if the issue is overdue
 export function isOverdue(issue) {
   if (!issue.DueDate) return false;
