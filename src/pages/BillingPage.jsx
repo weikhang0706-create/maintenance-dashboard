@@ -263,7 +263,6 @@ export function BillingPage({ issues, onUpdate, units = [] }) {
                   title="Select all unbilled"
                 />
               </th>
-              <th className={thCls}>Issue</th>
               <th className={thCls}>Type</th>
               <th className={thCls}>Condo</th>
               <th className={thCls}>Unit No.</th>
@@ -273,7 +272,6 @@ export function BillingPage({ issues, onUpdate, units = [] }) {
               <th className={thCls}>Completed</th>
               <th className={`${thCls} text-right`}>Repair Cost</th>
               <th className={`${thCls} text-right`}>Bill Amount (RM)</th>
-              <th className={`${thCls} text-right`}>Markup</th>
               <th className={thCls}>Invoice Status</th>
               <th className={thCls}>Invoice #</th>
               <th className={thCls}>Action</th>
@@ -282,7 +280,7 @@ export function BillingPage({ issues, onUpdate, units = [] }) {
           <tbody className="divide-y divide-gray-100 bg-white">
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={15} className="text-center py-12 text-gray-400">
+                <td colSpan={13} className="text-center py-12 text-gray-400">
                   <p className="text-3xl mb-2">💳</p>
                   <p>No billing records match your filters.</p>
                 </td>
@@ -291,9 +289,7 @@ export function BillingPage({ issues, onUpdate, units = [] }) {
               filtered.map((issue) => {
                 const isUnbilled = issue.InvoueStatus !== 'Paid' && issue.InvoiceStatus !== 'Invoiced';
                 const selectable = issue.InvoiceStatus === 'Unbilled';
-                const markup = getMarkup(issue);
                 const billAmt = getBillAmount(issue);
-                const markupNum = parseFloat(markup);
 
                 return (
                   <tr
@@ -309,7 +305,6 @@ export function BillingPage({ issues, onUpdate, units = [] }) {
                         className="rounded disabled:opacity-30"
                       />
                     </td>
-                    <td className="px-4 py-3 font-mono text-xs text-gray-500">{issue.IssueID}</td>
                     <td className="px-4 py-3">
                       <Badge className={PROPERTY_TYPE_COLORS[issue.PropertyType] ?? 'bg-gray-100 text-gray-600'}>
                         {issue.PropertyType}
@@ -353,15 +348,6 @@ export function BillingPage({ issues, onUpdate, units = [] }) {
                         <span className="font-semibold text-gray-800">
                           {billAmt ? `RM ${parseFloat(billAmt).toFixed(2)}` : '—'}
                         </span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      {markup !== null ? (
-                        <span className={markupNum > 0 ? 'text-green-600 font-medium' : markupNum < 0 ? 'text-red-500' : 'text-gray-400'}>
-                          {markupNum > 0 ? '+' : ''}{markup}%
-                        </span>
-                      ) : (
-                        <span className="text-gray-300">—</span>
                       )}
                     </td>
                     <td className="px-4 py-3">
