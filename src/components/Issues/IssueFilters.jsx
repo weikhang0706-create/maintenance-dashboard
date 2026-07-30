@@ -1,6 +1,7 @@
 import { CATEGORIES, PRIORITIES, STATUSES, PROPERTY_TYPES, STAFF_LIST } from '../../utils/constants';
 
-export function IssueFilters({ filters, onChange }) {
+export function IssueFilters({ filters, onChange, staffNames }) {
+  const staffOptions = staffNames?.length ? staffNames : STAFF_LIST;
   const handle = (key) => (e) => onChange({ ...filters, [key]: e.target.value });
 
   const hasFilter = filters.propertyType || filters.status || filters.priority ||
@@ -19,7 +20,7 @@ export function IssueFilters({ filters, onChange }) {
       <select value={filters.assignedTo} onChange={handle('assignedTo')} className={selectCls}>
         <option value="">All Staff</option>
         <option value="__unassigned__">— Unassigned —</option>
-        {STAFF_LIST.map((s) => <option key={s}>{s}</option>)}
+        {staffOptions.map((s) => <option key={s}>{s}</option>)}
       </select>
 
       <select value={filters.status} onChange={handle('status')} className={selectCls}>
