@@ -113,7 +113,7 @@ export function UnitModal({ isOpen, onClose, onSave, existing }) {
               )}
               <div className="flex flex-wrap gap-2">
                 {rooms.map((room, idx) => (
-                  <span key={idx} className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 border border-blue-200 text-xs px-2.5 py-1 rounded-full">
+                  <span key={room} className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 border border-blue-200 text-xs px-2.5 py-1 rounded-full">
                     {room}
                     <button onClick={() => removeRoom(idx)} className="text-blue-400 hover:text-blue-700 leading-none">×</button>
                   </span>

@@ -287,7 +287,6 @@ export function BillingPage({ issues, onUpdate, units = [] }) {
               </tr>
             ) : (
               filtered.map((issue) => {
-                const isUnbilled = issue.InvoueStatus !== 'Paid' && issue.InvoiceStatus !== 'Invoiced';
                 const selectable = issue.InvoiceStatus === 'Unbilled';
                 const billAmt = getBillAmount(issue);
 

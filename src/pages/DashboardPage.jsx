@@ -313,7 +313,7 @@ export function DashboardPage({ issues, onUpdate, onDelete, staffNames, staff = 
           View all →
         </button>
       </div>
-      <IssueTable issues={recentOpen} onSelectIssue={setSelected} onUpdate={onUpdate} onDelete={onDelete} />
+      <IssueTable issues={recentOpen} onSelectIssue={setSelected} onUpdate={onUpdate} onDelete={onDelete} staffNames={staffNames} />
 
       <IssueDetailModal
         issue={selected}
