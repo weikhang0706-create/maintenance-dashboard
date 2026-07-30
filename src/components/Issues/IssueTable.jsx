@@ -107,6 +107,7 @@ export function IssueTable({ issues, onSelectIssue, onUpdate, onDelete, staffNam
   const [deleteConfirmID, setDeleteConfirmID] = useState(null);
   const [selected, setSelected] = useState(new Set());
   const [assignTarget, setAssignTarget] = useState('');
+  const [confirmBulkDelete, setConfirmBulkDelete] = useState(false);
 
   const staffOptions = staffNames?.length ? staffNames : STAFF_LIST;
 
@@ -153,6 +154,12 @@ export function IssueTable({ issues, onSelectIssue, onUpdate, onDelete, staffNam
     setAssignTarget('');
   };
 
+  const handleBulkDelete = () => {
+    selected.forEach((id) => onDelete(id));
+    setSelected(new Set());
+    setConfirmBulkDelete(false);
+  };
+
   if (sorted.length === 0) {
     return (
       <div className="text-center py-16 text-gray-400">
@@ -186,12 +193,38 @@ export function IssueTable({ issues, onSelectIssue, onUpdate, onDelete, staffNam
           >
             Assign
           </button>
-          <button
-            onClick={() => setSelected(new Set())}
-            className="text-sm text-blue-500 hover:text-blue-700 underline ml-1"
-          >
-            Clear
-          </button>
+          <div className="ml-auto flex items-center gap-2">
+            {confirmBulkDelete ? (
+              <>
+                <span className="text-sm text-red-600 font-semibold">Delete {selected.size} issues?</span>
+                <button
+                  onClick={handleBulkDelete}
+                  className="px-3 py-1.5 rounded-lg text-sm font-semibold bg-red-600 text-white hover:bg-red-700 transition-colors"
+                >
+                  Confirm
+                </button>
+                <button
+                  onClick={() => setConfirmBulkDelete(false)}
+                  className="px-3 py-1.5 rounded-lg text-sm text-gray-600 hover:text-gray-800 border border-gray-300 bg-white transition-colors"
+                >
+                  Cancel
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => setConfirmBulkDelete(true)}
+                className="px-3 py-1.5 rounded-lg text-sm font-semibold bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-colors"
+              >
+                🗑 Delete selected
+              </button>
+            )}
+            <button
+              onClick={() => { setSelected(new Set()); setConfirmBulkDelete(false); }}
+              className="text-sm text-blue-500 hover:text-blue-700 underline"
+            >
+              Clear
+            </button>
+          </div>
         </div>
       )}
 
