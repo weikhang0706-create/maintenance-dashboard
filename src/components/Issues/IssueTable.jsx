@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Badge } from '../UI/Badge';
 import { QuickDoneModal } from './QuickDoneModal';
 import { STATUS_COLORS, PRIORITY_COLORS, PROPERTY_TYPE_COLORS, STAFF_LIST } from '../../utils/constants';
@@ -34,16 +34,25 @@ function getRoom(issue) {
 
 function DescriptionCell({ value, onRowClick }) {
   const [expanded, setExpanded] = useState(false);
-  const isLong = !!value;
+  const [isClamped, setIsClamped] = useState(false);
+  const spanRef = useRef(null);
+
+  useEffect(() => {
+    const el = spanRef.current;
+    if (el) setIsClamped(el.scrollHeight > el.clientHeight);
+  }, [value]);
 
   return (
     <td className="px-4 py-3 text-gray-500 w-[340px] max-w-[340px] cursor-pointer" onClick={onRowClick}>
       {value ? (
         <div className="flex items-start gap-1">
-          <span className={expanded ? 'whitespace-normal break-words' : 'line-clamp-2 leading-snug'}>
+          <span
+            ref={spanRef}
+            className={expanded ? 'whitespace-normal break-words' : 'line-clamp-2 leading-snug'}
+          >
             {value}
           </span>
-          {isLong && (
+          {(isClamped || expanded) && (
             <button
               onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v); }}
               className="shrink-0 text-[10px] text-blue-400 hover:text-blue-600 border border-blue-200 rounded px-1 leading-4 mt-0.5"
