@@ -260,8 +260,8 @@ export function IssueTable({ issues, onSelectIssue, onUpdate, onDelete, staffNam
                   <ExpandableCell value={getUnit(issue)}   onRowClick={rowClick} />
                   <ExpandableCell value={getRoom(issue)}   onRowClick={rowClick} />
 
-                  <td className="px-2 py-3 text-gray-600 whitespace-nowrap cursor-pointer text-xs" onClick={rowClick}>
-                    {issue.Category}{issue.OtherCategory ? ` — ${issue.OtherCategory}` : ''}
+                  <td className="px-2 py-3 text-gray-600 cursor-pointer" onClick={rowClick}>
+                    <span className="line-clamp-2 leading-snug">{issue.Category}{issue.OtherCategory ? ` — ${issue.OtherCategory}` : ''}</span>
                   </td>
                   <DescriptionCell value={issue.Description} onRowClick={rowClick} />
                   <td className="px-4 py-3 whitespace-nowrap cursor-pointer" onClick={rowClick}>
