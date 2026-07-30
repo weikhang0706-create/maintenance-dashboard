@@ -269,6 +269,7 @@ export function BillingPage({ issues, onUpdate, units = [] }) {
               <th className={thCls}>Unit No.</th>
               <th className={thCls}>Room</th>
               <th className={thCls}>Category</th>
+              <th className={thCls}>Description</th>
               <th className={thCls}>Completed</th>
               <th className={`${thCls} text-right`}>Repair Cost</th>
               <th className={`${thCls} text-right`}>Bill Amount (RM)</th>
@@ -281,7 +282,7 @@ export function BillingPage({ issues, onUpdate, units = [] }) {
           <tbody className="divide-y divide-gray-100 bg-white">
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={14} className="text-center py-12 text-gray-400">
+                <td colSpan={15} className="text-center py-12 text-gray-400">
                   <p className="text-3xl mb-2">💳</p>
                   <p>No billing records match your filters.</p>
                 </td>
@@ -318,6 +319,7 @@ export function BillingPage({ issues, onUpdate, units = [] }) {
                     <ExpandableCell value={getUnit(issue)} />
                     <ExpandableCell value={getRoom(issue)} />
                     <td className="px-4 py-3 text-gray-600">{issue.Category}</td>
+                    <ExpandableCell value={issue.Description} />
                     <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{displayDate(issue.DateCompleted)}</td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-1">
