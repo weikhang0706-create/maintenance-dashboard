@@ -83,6 +83,9 @@ export function IssueTable({ issues, onSelectIssue, onUpdate, onDelete, staffNam
   };
 
   const sorted = [...issues].sort((a, b) => {
+    const aDone = a.Status === 'Done' || a.Status === 'Cancelled';
+    const bDone = b.Status === 'Done' || b.Status === 'Cancelled';
+    if (aDone !== bDone) return aDone ? 1 : -1;
     const av = a[sortKey] ?? '';
     const bv = b[sortKey] ?? '';
     const cmp = av < bv ? -1 : av > bv ? 1 : 0;
