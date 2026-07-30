@@ -34,7 +34,7 @@ function getRoom(issue) {
 
 function DescriptionCell({ value, onRowClick }) {
   const [expanded, setExpanded] = useState(false);
-  const isLong = value && value.length > 60;
+  const isLong = !!value;
 
   return (
     <td className="px-4 py-3 text-gray-500 w-[340px] max-w-[340px] cursor-pointer" onClick={onRowClick}>
