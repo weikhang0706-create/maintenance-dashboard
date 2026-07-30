@@ -32,6 +32,34 @@ function getRoom(issue) {
   return issue.Location?.split(' - ')[2] || '';
 }
 
+function DescriptionCell({ value, onRowClick }) {
+  const [expanded, setExpanded] = useState(false);
+  const isLong = value && value.length > 60;
+
+  return (
+    <td className="px-4 py-3 text-gray-500 w-[340px] max-w-[340px] cursor-pointer" onClick={onRowClick}>
+      {value ? (
+        <div className="flex items-start gap-1">
+          <span className={expanded ? 'whitespace-normal break-words' : 'line-clamp-2 leading-snug'}>
+            {value}
+          </span>
+          {isLong && (
+            <button
+              onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v); }}
+              className="shrink-0 text-[10px] text-blue-400 hover:text-blue-600 border border-blue-200 rounded px-1 leading-4 mt-0.5"
+              title={expanded ? 'Collapse' : 'Show full'}
+            >
+              {expanded ? '▲' : '▼'}
+            </button>
+          )}
+        </div>
+      ) : (
+        <span className="text-gray-300">—</span>
+      )}
+    </td>
+  );
+}
+
 function ExpandableCell({ value, onRowClick }) {
   const [expanded, setExpanded] = useState(false);
   const isLong = value && value.length > 14;
@@ -223,12 +251,10 @@ export function IssueTable({ issues, onSelectIssue, onUpdate, onDelete, staffNam
                   <ExpandableCell value={getUnit(issue)}   onRowClick={rowClick} />
                   <ExpandableCell value={getRoom(issue)}   onRowClick={rowClick} />
 
-                  <td className="px-4 py-3 text-gray-600 whitespace-nowrap cursor-pointer" onClick={rowClick}>
+                  <td className="px-2 py-3 text-gray-600 whitespace-nowrap cursor-pointer text-xs" onClick={rowClick}>
                     {issue.Category}{issue.OtherCategory ? ` — ${issue.OtherCategory}` : ''}
                   </td>
-                  <td className="px-4 py-3 text-gray-500 max-w-[220px] cursor-pointer" onClick={rowClick}>
-                    <span className="line-clamp-2 leading-snug">{issue.Description}</span>
-                  </td>
+                  <DescriptionCell value={issue.Description} onRowClick={rowClick} />
                   <td className="px-4 py-3 whitespace-nowrap cursor-pointer" onClick={rowClick}>
                     <Badge className={PRIORITY_COLORS[issue.Priority]}>{issue.Priority}</Badge>
                   </td>
