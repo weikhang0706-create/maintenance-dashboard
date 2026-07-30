@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Badge } from '../UI/Badge';
 import { QuickDoneModal } from './QuickDoneModal';
-import { STATUS_COLORS, PRIORITY_COLORS, PROPERTY_TYPE_COLORS } from '../../utils/constants';
+import { STATUS_COLORS, PRIORITY_COLORS, PROPERTY_TYPE_COLORS, STAFF_LIST } from '../../utils/constants';
 import { displayDate, isOverdue } from '../../utils/dateUtils';
 
 const COLUMNS = [
@@ -18,7 +18,6 @@ const COLUMNS = [
   { key: 'DueDate',      label: 'Due Date' },
 ];
 
-// Parse Condo/UnitNumber/RoomNumber from either separate fields or the Location string
 function getCondo(issue) {
   if (issue.Condo) return issue.Condo;
   return issue.Location?.split(' - ')[0] || '';
@@ -33,7 +32,6 @@ function getRoom(issue) {
   return issue.Location?.split(' - ')[2] || '';
 }
 
-// Cell that truncates long text and lets user click a toggle to expand
 function ExpandableCell({ value, onRowClick }) {
   const [expanded, setExpanded] = useState(false);
   const isLong = value && value.length > 14;
@@ -65,11 +63,15 @@ function ExpandableCell({ value, onRowClick }) {
   );
 }
 
-export function IssueTable({ issues, onSelectIssue, onUpdate, onDelete }) {
+export function IssueTable({ issues, onSelectIssue, onUpdate, onDelete, staffNames }) {
   const [sortKey, setSortKey] = useState('DateReported');
   const [sortDir, setSortDir] = useState('desc');
   const [quickDoneIssue, setQuickDoneIssue] = useState(null);
   const [deleteConfirmID, setDeleteConfirmID] = useState(null);
+  const [selected, setSelected] = useState(new Set());
+  const [assignTarget, setAssignTarget] = useState('');
+
+  const staffOptions = staffNames?.length ? staffNames : STAFF_LIST;
 
   const handleSort = (key) => {
     if (sortKey === key) {
@@ -87,6 +89,30 @@ export function IssueTable({ issues, onSelectIssue, onUpdate, onDelete }) {
     return sortDir === 'asc' ? cmp : -cmp;
   });
 
+  const toggleSelect = (id) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const allSelected = sorted.length > 0 && sorted.every((i) => selected.has(i.IssueID));
+  const toggleAll = () => {
+    if (allSelected) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(sorted.map((i) => i.IssueID)));
+    }
+  };
+
+  const handleBulkAssign = () => {
+    if (!assignTarget) return;
+    selected.forEach((id) => onUpdate(id, { AssignedTo: assignTarget }));
+    setSelected(new Set());
+    setAssignTarget('');
+  };
+
   if (sorted.length === 0) {
     return (
       <div className="text-center py-16 text-gray-400">
@@ -101,10 +127,47 @@ export function IssueTable({ issues, onSelectIssue, onUpdate, onDelete }) {
 
   return (
     <>
+      {/* Bulk action bar */}
+      {selected.size > 0 && (
+        <div className="flex items-center gap-3 mb-3 px-4 py-2.5 bg-blue-50 border border-blue-200 rounded-xl">
+          <span className="text-sm font-semibold text-blue-700">{selected.size} selected</span>
+          <select
+            value={assignTarget}
+            onChange={(e) => setAssignTarget(e.target.value)}
+            className="text-sm border border-blue-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+          >
+            <option value="">— Assign to staff —</option>
+            {staffOptions.map((s) => <option key={s}>{s}</option>)}
+          </select>
+          <button
+            onClick={handleBulkAssign}
+            disabled={!assignTarget}
+            className="px-4 py-1.5 rounded-lg text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          >
+            Assign
+          </button>
+          <button
+            onClick={() => setSelected(new Set())}
+            className="text-sm text-blue-500 hover:text-blue-700 underline ml-1"
+          >
+            Clear
+          </button>
+        </div>
+      )}
+
       <div className="overflow-x-auto rounded-xl border border-gray-200">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
+              <th className="px-4 py-3 w-10">
+                <input
+                  type="checkbox"
+                  checked={allSelected}
+                  onChange={toggleAll}
+                  className="rounded"
+                  title="Select all"
+                />
+              </th>
               {COLUMNS.map((col) => (
                 <th
                   key={col.key}
@@ -127,11 +190,21 @@ export function IssueTable({ issues, onSelectIssue, onUpdate, onDelete }) {
               const overdue = isOverdue(issue);
               const active = isActive(issue);
               const rowClick = () => onSelectIssue(issue);
+              const isSelected = selected.has(issue.IssueID);
               return (
                 <tr
                   key={issue.IssueID}
-                  className={`transition-colors ${issue.Status === 'Done' ? 'opacity-60' : 'hover:bg-gray-50'}`}
+                  className={`transition-colors ${isSelected ? 'bg-blue-50' : issue.Status === 'Done' ? 'opacity-60' : 'hover:bg-gray-50'}`}
                 >
+                  <td className="px-4 py-3">
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => toggleSelect(issue.IssueID)}
+                      onClick={(e) => e.stopPropagation()}
+                      className="rounded"
+                    />
+                  </td>
                   <td className="px-4 py-3 text-gray-600 whitespace-nowrap cursor-pointer" onClick={rowClick}>
                     {displayDate(issue.DateReported)}
                   </td>
@@ -143,7 +216,6 @@ export function IssueTable({ issues, onSelectIssue, onUpdate, onDelete }) {
                     )}
                   </td>
 
-                  {/* 3 expandable location columns */}
                   <ExpandableCell value={getCondo(issue)}  onRowClick={rowClick} />
                   <ExpandableCell value={getUnit(issue)}   onRowClick={rowClick} />
                   <ExpandableCell value={getRoom(issue)}   onRowClick={rowClick} />
