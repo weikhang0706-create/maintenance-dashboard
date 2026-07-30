@@ -101,7 +101,7 @@ function ExpandableCell({ value, onRowClick }) {
 }
 
 export function IssueTable({ issues, onSelectIssue, onUpdate, onDelete, staffNames }) {
-  const [sortKey, setSortKey] = useState('DateReported');
+  const [sortKey, setSortKey] = useState('IssueID');
   const [sortDir, setSortDir] = useState('desc');
   const [quickDoneIssue, setQuickDoneIssue] = useState(null);
   const [deleteConfirmID, setDeleteConfirmID] = useState(null);
@@ -127,7 +127,9 @@ export function IssueTable({ issues, onSelectIssue, onUpdate, onDelete, staffNam
     const av = a[sortKey] ?? '';
     const bv = b[sortKey] ?? '';
     const cmp = av < bv ? -1 : av > bv ? 1 : 0;
-    return sortDir === 'asc' ? cmp : -cmp;
+    if (cmp !== 0) return sortDir === 'asc' ? cmp : -cmp;
+    // tiebreak: newer IssueID always on top
+    return a.IssueID < b.IssueID ? 1 : a.IssueID > b.IssueID ? -1 : 0;
   });
 
   const toggleSelect = (id) => {
