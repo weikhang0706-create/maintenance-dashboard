@@ -100,7 +100,7 @@ function ExpandableCell({ value, onRowClick }) {
   );
 }
 
-export function IssueTable({ issues, onSelectIssue, onUpdate, onDelete, staffNames }) {
+export function IssueTable({ issues, onSelectIssue, onUpdate, onDelete, staffNames, t }) {
   const [sortKey, setSortKey] = useState('IssueID');
   const [sortDir, setSortDir] = useState('desc');
   const [quickDoneIssue, setQuickDoneIssue] = useState(null);
@@ -166,8 +166,8 @@ export function IssueTable({ issues, onSelectIssue, onUpdate, onDelete, staffNam
     return (
       <div className="text-center py-16 text-gray-400">
         <p className="text-4xl mb-3">📋</p>
-        <p className="font-medium text-gray-500">No issues match your filters.</p>
-        <p className="text-sm mt-1">Try clearing the filters or report a new issue.</p>
+        <p className="font-medium text-gray-500">{t?.noIssues ?? 'No issues match your filters.'}</p>
+        <p className="text-sm mt-1">{t?.noIssuesHint ?? 'Try clearing the filters or report a new issue.'}</p>
       </div>
     );
   }
@@ -179,13 +179,13 @@ export function IssueTable({ issues, onSelectIssue, onUpdate, onDelete, staffNam
       {/* Bulk action bar */}
       {selected.size > 0 && (
         <div className="flex items-center gap-3 mb-3 px-4 py-2.5 bg-blue-50 border border-blue-200 rounded-xl">
-          <span className="text-sm font-semibold text-blue-700">{selected.size} selected</span>
+          <span className="text-sm font-semibold text-blue-700">{t?.selected(selected.size) ?? `${selected.size} selected`}</span>
           <select
             value={assignTarget}
             onChange={(e) => setAssignTarget(e.target.value)}
             className="text-sm border border-blue-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
           >
-            <option value="">— Assign to staff —</option>
+            <option value="">{t?.assignToStaff ?? '— Assign to staff —'}</option>
             {staffOptions.map((s) => <option key={s}>{s}</option>)}
           </select>
           <button
@@ -193,23 +193,23 @@ export function IssueTable({ issues, onSelectIssue, onUpdate, onDelete, staffNam
             disabled={!assignTarget}
             className="px-4 py-1.5 rounded-lg text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
-            Assign
+            {t?.assign ?? 'Assign'}
           </button>
           <div className="ml-auto flex items-center gap-2">
             {confirmBulkDelete ? (
               <>
-                <span className="text-sm text-red-600 font-semibold">Delete {selected.size} issues?</span>
+                <span className="text-sm text-red-600 font-semibold">{t?.deleteConfirm(selected.size) ?? `Delete ${selected.size} issues?`}</span>
                 <button
                   onClick={handleBulkDelete}
                   className="px-3 py-1.5 rounded-lg text-sm font-semibold bg-red-600 text-white hover:bg-red-700 transition-colors"
                 >
-                  Confirm
+                  {t?.confirm ?? 'Confirm'}
                 </button>
                 <button
                   onClick={() => setConfirmBulkDelete(false)}
                   className="px-3 py-1.5 rounded-lg text-sm text-gray-600 hover:text-gray-800 border border-gray-300 bg-white transition-colors"
                 >
-                  Cancel
+                  {t?.cancel ?? 'Cancel'}
                 </button>
               </>
             ) : (
@@ -217,14 +217,14 @@ export function IssueTable({ issues, onSelectIssue, onUpdate, onDelete, staffNam
                 onClick={() => setConfirmBulkDelete(true)}
                 className="px-3 py-1.5 rounded-lg text-sm font-semibold bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-colors"
               >
-                🗑 Delete selected
+                {t?.deleteSelected ?? '🗑 Delete selected'}
               </button>
             )}
             <button
               onClick={() => { setSelected(new Set()); setConfirmBulkDelete(false); }}
               className="text-sm text-blue-500 hover:text-blue-700 underline"
             >
-              Clear
+              {t?.clearSelection ?? 'Clear'}
             </button>
           </div>
         </div>
@@ -249,14 +249,14 @@ export function IssueTable({ issues, onSelectIssue, onUpdate, onDelete, staffNam
                   onClick={() => handleSort(col.key)}
                   className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:text-gray-700 whitespace-nowrap"
                 >
-                  {col.label}
+                  {t?.cols?.[col.key] ?? col.label}
                   {sortKey === col.key && (
                     <span className="ml-1">{sortDir === 'asc' ? '↑' : '↓'}</span>
                   )}
                 </th>
               ))}
               <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                Quick Action
+                {t?.quickAction ?? 'Quick Action'}
               </th>
             </tr>
           </thead>
@@ -287,7 +287,7 @@ export function IssueTable({ issues, onSelectIssue, onUpdate, onDelete, staffNam
                       <span className="text-gray-600">{displayDate(issue.DateReported)}</span>
                       {isStale && (
                         <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-orange-600">
-                          ⚠ {daysOpen}d unsolved
+                          {t?.staleLabel(daysOpen) ?? `⚠ ${daysOpen}d unsolved`}
                         </span>
                       )}
                     </div>
@@ -309,10 +309,10 @@ export function IssueTable({ issues, onSelectIssue, onUpdate, onDelete, staffNam
                   </td>
                   <DescriptionCell value={issue.Description} onRowClick={rowClick} />
                   <td className="px-4 py-3 whitespace-nowrap cursor-pointer" onClick={rowClick}>
-                    <Badge className={PRIORITY_COLORS[issue.Priority]}>{issue.Priority}</Badge>
+                    <Badge className={PRIORITY_COLORS[issue.Priority]}>{t?.priorityDisplay?.[issue.Priority] ?? issue.Priority}</Badge>
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap cursor-pointer" onClick={rowClick}>
-                    <Badge className={STATUS_COLORS[issue.Status]}>{issue.Status}</Badge>
+                    <Badge className={STATUS_COLORS[issue.Status]}>{t?.statusDisplay?.[issue.Status] ?? issue.Status}</Badge>
                   </td>
                   <td className="px-4 py-3 text-gray-600 whitespace-nowrap cursor-pointer" onClick={rowClick}>
                     {issue.AssignedTo || '—'}
@@ -321,7 +321,7 @@ export function IssueTable({ issues, onSelectIssue, onUpdate, onDelete, staffNam
                     <span className={overdue ? 'text-red-600 font-semibold' : 'text-gray-600'}>
                       {displayDate(issue.DueDate)}
                       {overdue && (
-                        <span className="ml-1 text-xs bg-red-100 text-red-700 rounded-full px-1.5 py-0.5">Overdue</span>
+                        <span className="ml-1 text-xs bg-red-100 text-red-700 rounded-full px-1.5 py-0.5">{t?.overdueLabel ?? 'Overdue'}</span>
                       )}
                     </span>
                   </td>
@@ -332,11 +332,13 @@ export function IssueTable({ issues, onSelectIssue, onUpdate, onDelete, staffNam
                           onClick={(e) => { e.stopPropagation(); setQuickDoneIssue(issue); }}
                           className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 hover:border-green-400 transition-colors"
                         >
-                          ✓ Mark Done
+                          {t?.markDone ?? '✓ Mark Done'}
                         </button>
                       ) : (
                         <span className="text-xs text-gray-300 italic">
-                          {issue.Status === 'Done' ? `Done ${displayDate(issue.DateCompleted)}` : 'Cancelled'}
+                          {issue.Status === 'Done'
+                            ? (t?.doneOn(displayDate(issue.DateCompleted)) ?? `Done ${displayDate(issue.DateCompleted)}`)
+                            : (t?.cancelledLabel ?? 'Cancelled')}
                         </span>
                       )}
 
@@ -346,13 +348,13 @@ export function IssueTable({ issues, onSelectIssue, onUpdate, onDelete, staffNam
                             onClick={(e) => { e.stopPropagation(); onDelete(issue.IssueID); setDeleteConfirmID(null); }}
                             className="px-2 py-1 rounded text-xs font-semibold bg-red-500 text-white hover:bg-red-600"
                           >
-                            Confirm
+                            {t?.confirm ?? 'Confirm'}
                           </button>
                           <button
                             onClick={(e) => { e.stopPropagation(); setDeleteConfirmID(null); }}
                             className="px-2 py-1 rounded text-xs text-gray-500 hover:text-gray-700"
                           >
-                            Cancel
+                            {t?.cancel ?? 'Cancel'}
                           </button>
                         </span>
                       ) : (
@@ -361,7 +363,7 @@ export function IssueTable({ issues, onSelectIssue, onUpdate, onDelete, staffNam
                           className="px-2 py-1 rounded text-xs font-semibold bg-red-50 text-red-500 border border-red-200 hover:bg-red-100 transition-colors"
                           title="Delete issue"
                         >
-                          🗑 Delete
+                          {t?.deleteRow ?? '🗑 Delete'}
                         </button>
                       )}
                     </div>
