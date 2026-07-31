@@ -8,7 +8,6 @@ import { Button } from '../components/UI/Button';
 import { isOverdue } from '../utils/dateUtils';
 import { downloadCSV } from '../utils/exportUtils';
 import { formatWANumber, buildJobListWAMessage } from '../utils/issueUtils';
-import { TRANSLATIONS } from '../utils/issueTranslations';
 
 const ISSUE_CSV_COLS = [
   { label: 'Issue ID',       key: 'IssueID' },
@@ -31,8 +30,6 @@ export function IssuesPage({ issues, onUpdate, onDelete, staffNames, staff = [] 
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [selected, setSelected] = useState(null);
-  const [lang, setLang] = useState('en');
-  const t = TRANSLATIONS[lang];
   const [filters, setFilters] = useState({
     propertyType: '',
     assignedTo: '',
@@ -93,47 +90,31 @@ export function IssuesPage({ issues, onUpdate, onDelete, staffNames, staff = [] 
     <div>
       <div className="flex items-start justify-between mb-6">
         <Header
-          title={t.title}
-          subtitle={t.subtitle(filtered.length, issues.length)}
+          title="All Issues"
+          subtitle={`${filtered.length} of ${issues.length} issues`}
         />
-        <div className="flex gap-2 flex-wrap justify-end items-center">
-          {/* Language toggle */}
-          <div className="flex rounded-lg border border-gray-300 overflow-hidden text-sm font-semibold">
-            <button
-              onClick={() => setLang('en')}
-              className={`px-3 py-1.5 transition-colors ${lang === 'en' ? 'bg-blue-600 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}
-            >
-              EN
-            </button>
-            <button
-              onClick={() => setLang('id')}
-              className={`px-3 py-1.5 transition-colors ${lang === 'id' ? 'bg-blue-600 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}
-            >
-              ID
-            </button>
-          </div>
-
+        <div className="flex gap-2 flex-wrap justify-end">
           {waStaff && (
             formatWANumber(waStaff.Phone) ? (
               <button
                 onClick={handleWA}
                 className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold bg-green-500 text-white hover:bg-green-600 transition-colors"
               >
-                📱 WhatsApp {waStaff.Name.split(' ')[0]} {t.waOpen(waOpenIssues.length)}
+                📱 WhatsApp {waStaff.Name.split(' ')[0]} ({waOpenIssues.length} open)
               </button>
             ) : (
-              <span className="text-xs text-gray-400 self-center">{t.noPhone(waStaff.Name)}</span>
+              <span className="text-xs text-gray-400 self-center">No phone saved for {waStaff.Name}</span>
             )
           )}
           <Button variant="secondary" onClick={() => downloadCSV(`issues-${new Date().toISOString().slice(0,10)}.csv`, filtered, ISSUE_CSV_COLS)}>
-            {t.exportCSV}
+            ↓ Export CSV
           </Button>
-          <Button onClick={() => navigate('/report')}>{t.reportIssue}</Button>
+          <Button onClick={() => navigate('/report')}>+ Report Issue</Button>
         </div>
       </div>
 
-      <IssueFilters filters={filters} onChange={setFilters} staffNames={staffNames} t={t} />
-      <IssueTable issues={filtered} onSelectIssue={setSelected} onUpdate={onUpdate} onDelete={onDelete} staffNames={staffNames} t={t} />
+      <IssueFilters filters={filters} onChange={setFilters} staffNames={staffNames} />
+      <IssueTable issues={filtered} onSelectIssue={setSelected} onUpdate={onUpdate} onDelete={onDelete} staffNames={staffNames} />
 
       <IssueDetailModal
         issue={selected}
