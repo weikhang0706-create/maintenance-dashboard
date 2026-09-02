@@ -39,12 +39,13 @@ export const STAFF_LIST = [
   'Norzahra Binti Aziz',
 ];
 
-export const INVOICE_STATUSES = ['Unbilled', 'Invoiced', 'Paid'];
+export const INVOICE_STATUSES = ['Unbilled', 'Invoiced', 'Paid', 'Charged'];
 
 export const INVOICE_STATUS_COLORS = {
   Unbilled: 'bg-gray-100 text-gray-500',
   Invoiced: 'bg-blue-100 text-blue-700',
   Paid: 'bg-green-100 text-green-700',
+  Charged: 'bg-purple-100 text-purple-700',
 };
 
 export const STATUS_COLORS = {

@@ -33,6 +33,13 @@ export function BillingPage({ issues, onUpdate, units = [] }) {
   const [billAmounts, setBillAmounts] = useState({});
   const [costAmounts, setCostAmounts] = useState({});
   const [showInvoice, setShowInvoice] = useState(false);
+  const [sortKey, setSortKey] = useState('');
+  const [sortDir, setSortDir] = useState('asc');
+
+  const handleSort = (key) => {
+    setSortDir((prev) => (sortKey === key && prev === 'asc' ? 'desc' : 'asc'));
+    setSortKey(key);
+  };
 
   // Only Done issues are billable
   const billable = useMemo(() =>
@@ -41,14 +48,31 @@ export function BillingPage({ issues, onUpdate, units = [] }) {
   );
 
   const filtered = useMemo(() => {
-    return billable.filter((i) => {
+    const rows = billable.filter((i) => {
       if (filterType && i.PropertyType !== filterType) return false;
       if (filterStatus && i.InvoiceStatus !== filterStatus) return false;
       if (completedFrom && i.DateCompleted < completedFrom) return false;
       if (completedTo   && i.DateCompleted > completedTo)   return false;
       return true;
     });
-  }, [billable, filterType, filterStatus, completedFrom, completedTo]);
+    if (!sortKey) return rows;
+    return [...rows].sort((a, b) => {
+      let av, bv;
+      if (sortKey === 'Cost') {
+        av = parseFloat(costAmounts[a.IssueID] ?? a.Cost ?? 0);
+        bv = parseFloat(costAmounts[b.IssueID] ?? b.Cost ?? 0);
+      } else if (sortKey === 'BillAmount') {
+        av = parseFloat(billAmounts[a.IssueID] ?? a.BillAmount ?? 0);
+        bv = parseFloat(billAmounts[b.IssueID] ?? b.BillAmount ?? 0);
+      } else {
+        av = (a[sortKey] ?? '').toString().toLowerCase();
+        bv = (b[sortKey] ?? '').toString().toLowerCase();
+      }
+      if (av < bv) return sortDir === 'asc' ? -1 : 1;
+      if (av > bv) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [billable, filterType, filterStatus, completedFrom, completedTo, sortKey, sortDir, costAmounts, billAmounts]);
 
   // Summary totals across all Done issues
   const summary = useMemo(() => {
@@ -61,7 +85,10 @@ export function BillingPage({ issues, onUpdate, units = [] }) {
     const paid = billable
       .filter((i) => i.InvoiceStatus === 'Paid')
       .reduce((s, i) => s + (parseFloat(i.BillAmount || 0)), 0);
-    return { unbilledCost, invoiced, paid };
+    const charged = billable
+      .filter((i) => i.InvoiceStatus === 'Charged')
+      .reduce((s, i) => s + (parseFloat(i.BillAmount || 0)), 0);
+    return { unbilledCost, invoiced, paid, charged };
   }, [billable, costAmounts]);
 
   const toggleSelect = (id) => {
@@ -146,6 +173,10 @@ export function BillingPage({ issues, onUpdate, units = [] }) {
     onUpdate(issueID, { InvoiceStatus: 'Paid' });
   };
 
+  const handleMarkCharged = (issueID) => {
+    onUpdate(issueID, { InvoiceStatus: 'Charged' });
+  };
+
   const unbilledSelectableCount = filtered.filter((i) => i.InvoiceStatus === 'Unbilled').length;
   const hasPendingAmounts = Object.keys(billAmounts).length > 0 || Object.keys(costAmounts).length > 0;
 
@@ -157,7 +188,7 @@ export function BillingPage({ issues, onUpdate, units = [] }) {
       />
 
       {/* Summary cards */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-4 gap-4 mb-6">
         <SummaryCard
           label="Unbilled (repair cost)"
           value={`RM ${summary.unbilledCost.toFixed(2)}`}
@@ -178,6 +209,13 @@ export function BillingPage({ issues, onUpdate, units = [] }) {
           color="text-green-600"
           bg="bg-green-50"
           sub="collected"
+        />
+        <SummaryCard
+          label="Charged"
+          value={`RM ${summary.charged.toFixed(2)}`}
+          color="text-purple-600"
+          bg="bg-purple-50"
+          sub="owner charged"
         />
       </div>
 
@@ -263,17 +301,17 @@ export function BillingPage({ issues, onUpdate, units = [] }) {
                   title="Select all unbilled"
                 />
               </th>
-              <th className={thCls}>Type</th>
-              <th className={thCls}>Condo</th>
-              <th className={thCls}>Unit No.</th>
-              <th className={thCls}>Room</th>
-              <th className={thCls}>Category</th>
+              <SortTh label="Type"         sortKey="PropertyType"   current={sortKey} dir={sortDir} onSort={handleSort} />
+              <SortTh label="Condo"        sortKey="Condo"          current={sortKey} dir={sortDir} onSort={handleSort} />
+              <SortTh label="Unit No."     sortKey="UnitNumber"     current={sortKey} dir={sortDir} onSort={handleSort} />
+              <SortTh label="Room"         sortKey="RoomNumber"     current={sortKey} dir={sortDir} onSort={handleSort} />
+              <SortTh label="Category"     sortKey="Category"       current={sortKey} dir={sortDir} onSort={handleSort} />
               <th className={thCls}>Description</th>
-              <th className={thCls}>Completed</th>
-              <th className={`${thCls} text-right`}>Repair Cost</th>
-              <th className={`${thCls} text-right`}>Bill Amount (RM)</th>
-              <th className={thCls}>Invoice Status</th>
-              <th className={thCls}>Invoice #</th>
+              <SortTh label="Completed"    sortKey="DateCompleted"  current={sortKey} dir={sortDir} onSort={handleSort} />
+              <SortTh label="Repair Cost"  sortKey="Cost"           current={sortKey} dir={sortDir} onSort={handleSort} align="right" />
+              <SortTh label="Bill Amount (RM)" sortKey="BillAmount" current={sortKey} dir={sortDir} onSort={handleSort} align="right" />
+              <SortTh label="Invoice Status" sortKey="InvoiceStatus" current={sortKey} dir={sortDir} onSort={handleSort} />
+              <SortTh label="Invoice #"    sortKey="InvoiceNumber"  current={sortKey} dir={sortDir} onSort={handleSort} />
               <th className={thCls}>Action</th>
             </tr>
           </thead>
@@ -357,13 +395,21 @@ export function BillingPage({ issues, onUpdate, units = [] }) {
                     <td className="px-4 py-3 font-mono text-xs text-gray-500">
                       {issue.InvoiceNumber || '—'}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 space-y-1">
                       {issue.InvoiceStatus === 'Invoiced' && (
                         <button
                           onClick={() => handleMarkPaid(issue.IssueID)}
-                          className="text-xs text-green-600 hover:text-green-800 font-medium underline whitespace-nowrap"
+                          className="block text-xs text-green-600 hover:text-green-800 font-medium underline whitespace-nowrap"
                         >
                           Mark Paid
+                        </button>
+                      )}
+                      {issue.InvoiceStatus === 'Paid' && (
+                        <button
+                          onClick={() => handleMarkCharged(issue.IssueID)}
+                          className="block text-xs text-purple-600 hover:text-purple-800 font-medium underline whitespace-nowrap"
+                        >
+                          Mark Charged
                         </button>
                       )}
                     </td>
@@ -443,6 +489,23 @@ function SummaryCard({ label, value, color, bg, sub }) {
       <p className={`text-2xl font-bold mt-1 ${color}`}>{value}</p>
       {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
     </div>
+  );
+}
+
+function SortTh({ label, sortKey, current, dir, onSort, align }) {
+  const active = current === sortKey;
+  return (
+    <th
+      className={`${thCls} cursor-pointer select-none hover:text-gray-800 ${align === 'right' ? 'text-right' : ''}`}
+      onClick={() => onSort(sortKey)}
+    >
+      <span className="inline-flex items-center gap-1">
+        {label}
+        <span className={`text-[10px] ${active ? 'text-blue-500' : 'text-gray-300'}`}>
+          {active ? (dir === 'asc' ? '▲' : '▼') : '⇅'}
+        </span>
+      </span>
+    </th>
   );
 }
 
