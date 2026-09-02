@@ -404,7 +404,7 @@ export function BillingPage({ issues, onUpdate, units = [] }) {
                           Mark Paid
                         </button>
                       )}
-                      {issue.InvoiceStatus === 'Paid' && (
+                      {issue.InvoiceStatus !== 'Charged' && (
                         <button
                           onClick={() => handleMarkCharged(issue.IssueID)}
                           className="block text-xs text-purple-600 hover:text-purple-800 font-medium underline whitespace-nowrap"
