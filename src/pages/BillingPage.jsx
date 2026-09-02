@@ -142,6 +142,20 @@ export function BillingPage({ issues, onUpdate, units = [] }) {
 
   const invoiceNumber = useMemo(() => generateInvoiceNumber(issues), [issues]);
 
+  const handleCostBlur = (issueID) => {
+    if (costAmounts[issueID] !== undefined) {
+      onUpdate(issueID, { Cost: costAmounts[issueID] });
+      setCostAmounts((prev) => { const next = { ...prev }; delete next[issueID]; return next; });
+    }
+  };
+
+  const handleBillAmountBlur = (issueID) => {
+    if (billAmounts[issueID] !== undefined) {
+      onUpdate(issueID, { BillAmount: billAmounts[issueID] });
+      setBillAmounts((prev) => { const next = { ...prev }; delete next[issueID]; return next; });
+    }
+  };
+
   const handleSaveBillAmounts = () => {
     Object.entries(costAmounts).forEach(([id, cost]) => onUpdate(id, { Cost: cost }));
     Object.entries(billAmounts).forEach(([id, amount]) => onUpdate(id, { BillAmount: amount }));
@@ -362,6 +376,7 @@ export function BillingPage({ issues, onUpdate, units = [] }) {
                           step="0.01"
                           value={getCost(issue)}
                           onChange={(e) => handleCostChange(issue.IssueID, e.target.value)}
+                          onBlur={() => handleCostBlur(issue.IssueID)}
                           placeholder="0.00"
                           className="w-24 text-sm text-right border border-gray-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
@@ -377,6 +392,7 @@ export function BillingPage({ issues, onUpdate, units = [] }) {
                             step="0.01"
                             value={billAmt}
                             onChange={(e) => handleBillAmountChange(issue.IssueID, e.target.value)}
+                            onBlur={() => handleBillAmountBlur(issue.IssueID)}
                             placeholder="0.00"
                             className="w-24 text-sm text-right border border-gray-300 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
                           />
