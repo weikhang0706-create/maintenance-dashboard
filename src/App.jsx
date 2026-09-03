@@ -11,6 +11,7 @@ import { UnitsPage } from './pages/UnitsPage';
 import { StaffPage } from './pages/StaffPage';
 import { AcServicePage } from './pages/AcServicePage';
 import { LoginPage } from './pages/LoginPage';
+import { LogPage } from './pages/LogPage';
 import { useIssues } from './hooks/useIssues';
 import { useUnits } from './hooks/useUnits';
 import { useStaff } from './hooks/useStaff';
@@ -40,7 +41,7 @@ export default function App() {
         updateIssue(issue.IssueID, {
           Condo: condo, UnitNumber: unitNumber, PropertyType: type,
           Location: parts.join(' - '),
-        });
+        }, { quiet: true });
       });
   };
 
@@ -107,6 +108,7 @@ export default function App() {
               <Route path="/staff"         element={<StaffPage        staff={staff}   onAddStaff={addStaff} onUpdateStaff={updateStaff} onDeleteStaff={deleteStaff} issues={issues} />} />
               <Route path="/ac-log"         element={<AcServicePage    issues={issues} />} />
               <Route path="/report"        element={<ReportPage       onAddIssue={addIssue} units={units} staffNames={activeStaffNames} issues={issues} />} />
+              <Route path="/log"           element={<LogPage />} />
             </Routes>
           )}
         </main>

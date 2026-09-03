@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { MOCK_UNITS } from '../data/mockUnits';
 import { canRead, canWrite, unitsRead, unitsCreate, unitsUpdate } from './useGoogleSheets';
+import { writeLog, diffObjects, buildUpdateSummary } from '../utils/logUtils';
 
 export function useUnits() {
   const [units, setUnits] = useState([]);
@@ -41,6 +42,12 @@ export function useUnits() {
       if (canWrite()) {
         unitsCreate(newUnit).catch((err) => console.error('[Sheets] unit create failed:', err.message));
       }
+      writeLog({
+        action: 'Created',
+        entity: 'Unit',
+        entityID: newUnit.UnitID,
+        summary: `${newUnit.PropertyType} — ${newUnit.Condo} Unit ${newUnit.UnitNumber}`,
+      });
       return [...prev, newUnit];
     });
   }, []);
@@ -49,9 +56,20 @@ export function useUnits() {
     setUnits((prev) =>
       prev.map((u) => {
         if (u.UnitID !== unitID) return u;
+        const before = u;
         const updated = { ...u, ...changes };
         if (canWrite()) {
           unitsUpdate(updated).catch((err) => console.error('[Sheets] unit update failed:', err.message));
+        }
+        const diffs = diffObjects(before, updated);
+        if (diffs.length > 0) {
+          writeLog({
+            action: 'Updated',
+            entity: 'Unit',
+            entityID: unitID,
+            summary: buildUpdateSummary(diffs),
+            details: diffs,
+          });
         }
         return updated;
       })

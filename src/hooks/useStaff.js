@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { canRead, canWrite, staffRead, staffCreate, staffUpdate, staffDelete } from './useGoogleSheets';
+import { writeLog, diffObjects, buildUpdateSummary } from '../utils/logUtils';
 
 const MOCK_STAFF = [
   { StaffID: 'S-001', Name: 'Ahmad Razif',       Role: 'Electrician', Phone: '012-3456789', Email: '', Status: 'Active', Notes: '' },
@@ -37,6 +38,12 @@ export function useStaff() {
     setStaff((prev) => {
       const newStaff = { ...formData, StaffID: generateStaffID(prev) };
       if (canWrite()) staffCreate(newStaff).catch((err) => console.error('[Sheets] staff create failed:', err.message));
+      writeLog({
+        action: 'Created',
+        entity: 'Staff',
+        entityID: newStaff.StaffID,
+        summary: `${newStaff.Name} — ${newStaff.Role}`,
+      });
       return [...prev, newStaff];
     });
   }, []);
@@ -45,15 +52,37 @@ export function useStaff() {
     setStaff((prev) =>
       prev.map((s) => {
         if (s.StaffID !== staffID) return s;
+        const before = s;
         const updated = { ...s, ...changes };
         if (canWrite()) staffUpdate(updated).catch((err) => console.error('[Sheets] staff update failed:', err.message));
+        const diffs = diffObjects(before, updated);
+        if (diffs.length > 0) {
+          writeLog({
+            action: 'Updated',
+            entity: 'Staff',
+            entityID: staffID,
+            summary: buildUpdateSummary(diffs),
+            details: diffs,
+          });
+        }
         return updated;
       })
     );
   }, []);
 
   const deleteStaff = useCallback((staffID) => {
-    setStaff((prev) => prev.filter((s) => s.StaffID !== staffID));
+    setStaff((prev) => {
+      const s = prev.find((s) => s.StaffID === staffID);
+      if (s) {
+        writeLog({
+          action: 'Deleted',
+          entity: 'Staff',
+          entityID: staffID,
+          summary: `${s.Name} — ${s.Role}`,
+        });
+      }
+      return prev.filter((s) => s.StaffID !== staffID);
+    });
     if (canWrite()) staffDelete(staffID).catch((err) => console.error('[Sheets] staff delete failed:', err.message));
   }, []);
 

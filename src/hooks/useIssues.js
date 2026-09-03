@@ -3,6 +3,7 @@ import { MOCK_ISSUES } from '../data/mockData';
 import { generateIssueID } from '../utils/issueUtils';
 import { todayISO } from '../utils/dateUtils';
 import { canRead, canWrite, sheetsRead, sheetsCreate, sheetsUpdate, sheetsDelete } from './useGoogleSheets';
+import { writeLog, diffObjects, buildUpdateSummary } from '../utils/logUtils';
 
 export function useIssues() {
   const [issues, setIssues] = useState([]);
@@ -102,20 +103,37 @@ export function useIssues() {
         BilledTo: '',
       };
       syncCreate(newIssue);
+      writeLog({
+        action: 'Created',
+        entity: 'Issue',
+        entityID: newIssue.IssueID,
+        summary: `${newIssue.Category} at ${newIssue.Location} [${newIssue.Priority}]`,
+      });
       return [newIssue, ...prev];
     });
   }, [syncCreate]);
 
-  const updateIssue = useCallback((issueID, changes) => {
-    // Compute the updated issue first, then set state and sync separately
-    // (avoids calling syncUpdate inside a React state updater which can run multiple times)
+  const updateIssue = useCallback((issueID, changes, options = {}) => {
     setIssues((prev) => {
       const next = prev.map((issue) => {
         if (issue.IssueID !== issueID) return issue;
+        const before = issue;
         const updated = { ...issue, ...changes };
         if (changes.Status === 'Done' && !updated.DateCompleted) updated.DateCompleted = todayISO();
         if (changes.Status && changes.Status !== 'Done') updated.DateCompleted = '';
         if (changes.AssignedTo && updated.Status === 'Open') updated.Status = 'Assigned';
+        if (!options.quiet) {
+          const diffs = diffObjects(before, updated);
+          if (diffs.length > 0) {
+            writeLog({
+              action: 'Updated',
+              entity: 'Issue',
+              entityID: issueID,
+              summary: buildUpdateSummary(diffs),
+              details: diffs,
+            });
+          }
+        }
         return updated;
       });
       const updated = next.find((i) => i.IssueID === issueID);
@@ -125,7 +143,18 @@ export function useIssues() {
   }, [syncUpdate]);
 
   const deleteIssue = useCallback(async (issueID) => {
-    setIssues((prev) => prev.filter((i) => i.IssueID !== issueID));
+    setIssues((prev) => {
+      const issue = prev.find((i) => i.IssueID === issueID);
+      if (issue) {
+        writeLog({
+          action: 'Deleted',
+          entity: 'Issue',
+          entityID: issueID,
+          summary: `${issue.Category} at ${issue.Location || issue.Description?.slice(0, 60) || issueID}`,
+        });
+      }
+      return prev.filter((i) => i.IssueID !== issueID);
+    });
     if (!canWrite()) return;
     isSyncing.current = true;
     setSyncStatus('syncing');

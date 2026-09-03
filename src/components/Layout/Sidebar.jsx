@@ -9,6 +9,7 @@ const links = [
   { to: '/staff',         label: 'Staff',         icon: '👥' },
   { to: '/ac-log',        label: 'AC Log',        icon: '❄' },
   { to: '/report',        label: 'Report Issue',  icon: '+' },
+  { to: '/log',           label: 'Activity Log',  icon: '📋' },
 ];
 
 export function Sidebar({ overdueCount = 0, onLogout, mobileOpen, onMobileClose }) {
